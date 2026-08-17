@@ -1,7 +1,7 @@
 // POST /api/connection { owner, conn, guestOwnerId?, guestSelf? } → { ok, connections, guestOwnerId }
 // 양방향: 게스트가 owner 지도에 합류하면, 게스트의 지도에도 owner를 상호 등록한다.
 import { redis } from "./_redis.js";
-import { nanoid } from "nanoid";
+import { shortId } from "./_id.js";
 
 async function addTo(ownerId, entry) {
   const key = `conn:${ownerId}`;
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     // 1) 게스트에게도 owner_id 보장 (없으면 즉시 발급 → 게스트가 자기 지도를 가질 수 있음)
     let gid = guestOwnerId;
     if (!gid) {
-      gid = nanoid(8);
+      gid = shortId(8);
       const gRec = guestSelf && guestSelf.axes
         ? { name: conn.name, mbti: conn.mbti, axes: guestSelf.axes, createdAt: Date.now() }
         : { name: conn.name, mbti: conn.mbti, axes: null, createdAt: Date.now() };

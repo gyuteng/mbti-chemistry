@@ -374,11 +374,11 @@ function NavBar({active,onGo}){
 }
 
 /* ═══ 개발용 로그 패널 ═══ */
-function LogPanel({events,onClose,onClear}){
+function LogPanel({events,onClose,onClear,onReset}){
   return (<div className="fixed inset-0 z-50 flex items-end" style={{background:"rgba(0,0,0,0.4)"}} onClick={onClose}>
     <div className="w-full overflow-auto rounded-t-3xl p-4" style={{background:C.panel,maxHeight:"70vh"}} onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between mb-3"><span className="text-sm font-bold" style={{color:C.ink}}>세션 로그 · {events.length}건</span>
-        <div className="flex gap-2"><button onClick={onClear} className="text-xs px-2 py-1 rounded" style={{color:C.red}}>초기화</button>
+        <div className="flex gap-2"><button onClick={onReset} className="text-xs px-2 py-1 rounded" style={{color:"#FBF6EC",background:C.red}}>처음부터(전체 리셋)</button><button onClick={onClear} className="text-xs px-2 py-1 rounded" style={{color:C.red}}>로그만 지우기</button>
           <button onClick={onClose} className="text-xs px-2 py-1 rounded" style={{color:C.faint}}>닫기</button></div></div>
       {[...events].reverse().map((e,i)=>(<div key={i} className="text-xs font-mono py-1" style={{color:C.sub,borderBottom:`1px solid ${C.line}`}}>
         <span style={{color:C.indigo}}>{e.event}</span> <span style={{color:C.faint}}>{new Date(e.ts).toLocaleTimeString()}</span>
@@ -449,6 +449,9 @@ export default function App(){
       else if(typeof window!=="undefined"&&window.prompt){ window.prompt("프롬프트를 복사하세요", text); } }catch(e){}
     setToast("프롬프트를 복사했어요! ChatGPT·Claude에 붙여넣어 보세요"); setTimeout(()=>setToast(""),2600); };
   const clearAll=()=>{ setEvents([]); sset(K.log,[]); };
+  const resetAll=()=>{ try{ Object.values(K).forEach(k=>{ if(hasLS) window.localStorage.removeItem(k); }); }catch{}
+    setEvents([]); setOwner(null); setTargetOwner(null); setConnections([]); setGuestId(null); setTested(false); setMode("owner"); setName(""); setD({ei:"",sn:"",tf:"",jp:""}); setShowLog(false);
+    if(typeof history!=="undefined") history.replaceState(null,"",location.pathname+"?debug=1"); _setStep("landing"); track("debug_reset",{}); };
 
   if(!ready) return <div className="min-h-screen" style={{background:C.bg}}/>;
   return (<div className="min-h-screen w-full" style={{background:C.bg,color:C.ink}}>
@@ -468,6 +471,6 @@ export default function App(){
       onBack={()=> mode==="guest" ? (track("guest_make_own",{}),setMode("owner"),setTargetOwner(null),setConnections([]),setOwner(null),setStep("landing")) : setStep("map")}/>}
     {toast&&(<div className="fixed left-1/2 bottom-16 -translate-x-1/2 px-4 py-2 rounded-full text-sm z-50" style={{background:C.ink,color:C.bg}}>{toast}</div>)}
     {devMode&&<button onClick={()=>setShowLog(true)} className="fixed left-3 bottom-3 z-40 text-xs px-2 py-1 rounded-full" style={{background:C.navy,color:"#FBF6EC",opacity:0.8}}>🐞 {events.length}</button>}
-    {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll}/>}
+    {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll} onReset={resetAll}/>}
   </div>);
 }
