@@ -138,7 +138,7 @@ function scoreVector(res){ const raw={EI:0,NS:0,TF:0,JP:0},cnt={EI:0,NS:0,TF:0,J
   const a={}; Object.keys(raw).forEach(ax=>a[ax]=raw[ax]/(cnt[ax]*2)); return a; }
 
 /* ═══ 로깅 · 영속 ═══ */
-const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last" };
+const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last", myid:"psymatch:myid" };
 const hasStore = typeof window!=="undefined" && window.storage;
 async function sget(k){ try{ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; }catch{ return null; } }
 async function sset(k,v){ try{ if(hasStore) await window.storage.set(k, JSON.stringify(v), false); }catch{} }
@@ -396,18 +396,28 @@ export default function App(){
     const lg=await sget(K.log); if(lg) setEvents(lg);
     const params=(typeof location!=="undefined")?new URLSearchParams(location.search):new URLSearchParams();
     const ownerParam=params.get("owner"); const refSrc=params.get("src")||null; const refSid=params.get("sid")||null;
-    track("session_start",{returning:!!(await sget(K.owner)),src:refSrc,sid:refSid});
-    if(ownerParam){ const map=await apiGet(`/api/map?owner=${ownerParam}`);
-      if(map && map.owner){ setTargetOwner({...map.owner,id:ownerParam}); setConnections(map.connections||[]); setMode("guest"); setReady(true);
-        track("add_view",{owner:ownerParam,src:refSrc,sid:refSid}); setStep("add"); return; } }
+    const myId=await sget(K.myid);
+    track("session_start",{returning:!!myId,src:refSrc,sid:refSid});
+    const restore=async(oid,asOwner)=>{ const m=await apiGet(`/api/map?owner=${oid}`); if(!(m&&m.owner))return false;
+      if(asOwner){ const o={...m.owner,id:oid}; setOwner(o); setName(o.name||""); setConnections(m.connections||[]); sset(K.owner,o); sset(K.conn,m.connections||[]);
+        if(API_BASE && typeof history!=="undefined") history.replaceState(null,"",`?owner=${oid}`);
+        const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
+      else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
+      return true; };
+    // 남의 지도 링크 → 게스트
+    if(ownerParam && ownerParam!==myId){ if(await restore(ownerParam,false)) return; }
+    // 내 지도 복귀 (내 링크로 왔거나 기본 주소지만 내 id 저장됨)
+    const myOid=(ownerParam && ownerParam===myId)?ownerParam:myId;
+    if(myOid){ if(await restore(myOid,true)) return; }
+    // 백엔드 실패 시 로컬 폴백
     const o=await sget(K.owner), cs=await sget(K.conn);
-    if(o){ setOwner(o); setName(o.name||""); } if(cs) setConnections(cs);
-    setReady(true); if(o){ const last=await sget(K.last); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); } else track("landing_view",{src:refSrc,sid:refSid});
+    if(o){ setOwner(o); setName(o.name||""); if(cs) setConnections(cs); const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); return; }
+    setReady(true); track("landing_view",{src:refSrc,sid:refSid});
   })(); },[]);
 
   const makeOwner=async(mbti,axes,isTested)=>{ const base={name:name.trim()||"나",mbti,axes};
     const res=await apiPost("/api/owner",base); const id=(res&&res.ownerId)||uid(); const o={...base,id};
-    setOwner(o); sset(K.owner,o); setTested(isTested);
+    setOwner(o); sset(K.owner,o); sset(K.myid,id); setTested(isTested);
     if(API_BASE && typeof history!=="undefined") history.replaceState(null,"",`?owner=${id}`);
     track("card_view",{mbti,tested:isTested}); setStep("card"); };
   const finishTest=(v)=>{ track("test_complete",{type:tfa(v)}); makeOwner(tfa(v),v,true); };
