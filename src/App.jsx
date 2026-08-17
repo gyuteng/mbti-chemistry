@@ -331,13 +331,13 @@ function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExpla
 }
 
 /* ═══ 화면: /add 게스트 합류 ═══ */
-function AddScreen({owner,onSubmit,onBack,guest}){
+function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
   const [name,setName]=useState(""); const [d,setD]=useState({ei:"",sn:"",tf:"",jp:""}); const [result,setResult]=useState(null);
   const mbti=`${d.ei}${d.sn}${d.tf}${d.jp}`; const full=mbti.length===4&&STACK[mbti];
   const Row=({field,left,right})=>(<div className="flex gap-2 mb-2">{[left,right].map(([lab,v])=>(
     <button key={v} onClick={()=>setD({...d,[field]:v})} className="flex-1 rounded-xl py-2.5 text-sm font-semibold"
       style={{background:d[field]===v?C.navy:C.panel2,color:d[field]===v?"#FBF6EC":C.sub,border:`1px solid ${C.line}`}}>{lab}</button>))}</div>);
-  const submit=()=>{ if(!(name.trim()&&full))return; const r={name:name.trim(),mbti,...chemi(owner.axes,t2a(mbti))}; setResult(r); onSubmit(r); };
+  const submit=()=>{ if(!(name.trim()&&full))return; const gaxes=t2a(mbti); const r={name:name.trim(),mbti,gaxes,...chemi(owner.axes,gaxes)}; setResult(r); onSubmit(r); };
   const ownerInf=STACK[owner.mbti][3];
   return (<div className="mx-auto max-w-md px-4 py-6">
     <div className="rounded-3xl p-6 mb-5 text-center" style={{background:C.panel,border:`1px solid ${C.line}`,boxShadow:"0 2px 8px rgba(44,40,35,0.06)"}}>
@@ -352,7 +352,7 @@ function AddScreen({owner,onSubmit,onBack,guest}){
       <p className="text-sm leading-relaxed mb-4" style={{color:C.ink}}>{ONE[result.type]}</p>
       <div className="space-y-2 mb-5">{["이해","보완","긴장","자율"].map(k=><DomBar key={k} k={k} v={result.scores[k]}/>)}</div>
       <p className="text-sm mb-3" style={{color:C.sub}}>{owner.name}님 지도에 올라갔어요.</p>
-      <Btn onClick={onBack}>{guest?"나도 내 MBTI 케미 만들기":"지도로 돌아가기"}</Btn></div>):(
+      {guest?(<><Btn onClick={onMakeMine}>🔎 내 케미 지도 만들어보기</Btn><p className="text-center text-xs mt-2" style={{color:C.faint}}>{owner.name}님이 내 지도에도 자동으로 올라가 있어요</p></>):(<Btn onClick={onBack}>지도로 돌아가기</Btn>)}</div>):(
     <div className="rounded-3xl p-5" style={{background:C.panel,border:`1px solid ${C.line}`}}>
       <h2 className="text-base font-bold mb-1" style={{color:C.ink}}>🙋 나는 {owner.name}님에게 어떤 사람일까?</h2>
       <p className="text-sm mb-4" style={{color:C.sub}}>내 MBTI만 고르면 케미가 바로 나와요.</p>
@@ -394,7 +394,7 @@ export default function App(){
   const [connections,setConnections]=useState([]); const [events,setEvents]=useState([]);
   const [showLog,setShowLog]=useState(false); const [ready,setReady]=useState(false);
   const [mode,setMode]=useState("owner"); const [targetOwner,setTargetOwner]=useState(null);
-  const [toast,setToast]=useState("");
+  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null);
   const devMode = (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1";
 
   const track=useCallback((event,props={})=>{ amp(event,props); ga(event,props); setEvents(prev=>{ const ev={event,ts:Date.now(),...props}; const next=[...prev,ev].slice(-100); sset(K.log,next); return next; }); },[]);
@@ -431,7 +431,10 @@ export default function App(){
   const direct=(t)=>{ track("direct_pick",{type:t}); makeOwner(t,t2a(t),false); };
   const goSynergy=()=>{ track("map_view",{n:connections.length}); setStep("map"); };
   const addConn=async(r)=>{ const next=[...connections.filter(c=>c.name!==r.name),r]; setConnections(next); sset(K.conn,next);
-    const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id)); if(oid) await apiPost("/api/connection",{owner:oid,conn:r});
+    const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id));
+    if(oid){ const gExisting=await sget(K.myid);
+      const resp=await apiPost("/api/connection",{owner:oid,conn:r,guestOwnerId:gExisting||null,guestSelf:(mode==="guest"?{axes:r.gaxes||null}:null)});
+      if(mode==="guest" && resp && resp.guestOwnerId){ sset(K.myid,resp.guestOwnerId); setGuestId(resp.guestOwnerId); } }
     track("add_submit",{mbti:r.mbti,chemi:r.chemi}); };
   const delConn=(nm)=>{ const next=connections.filter(c=>c.name!==nm); setConnections(next); sset(K.conn,next); track("connection_delete",{}); };
   const share=async(surface)=>{ const oid=owner&&owner.id; const {url,sid}=buildShareUrl(oid,"link");
@@ -454,6 +457,13 @@ export default function App(){
     {step==="card"&&owner&&<Card name={owner.name} mbti={owner.mbti} axes={owner.axes} tested={tested} onShare={()=>share("card")} onPrompt={()=>copyPrompt("card")} onSynergy={goSynergy} onTest={()=>{track("nudge_test_click");setStep("test");}}/>}
     {step==="map"&&owner&&<MapScreen owner={owner} connections={connections} onSelectLog={p=>track("connection_open",{mbti:p.mbti,chemi:p.chemi})} onDelete={delConn} onShare={()=>share("map")} onPrompt={()=>copyPrompt("map")} onExplain={()=>track("explain_open")} onAdd={()=>{track("add_view");setStep("add");}}/>}
     {step==="add"&&(mode==="guest"?targetOwner:owner)&&<AddScreen owner={mode==="guest"?targetOwner:owner} guest={mode==="guest"} onSubmit={addConn}
+      onMakeMine={async()=>{ track("guest_make_own",{}); const gid=guestId||await sget(K.myid);
+        if(gid){ const mine=await apiGet(`/api/map?owner=${gid}`);
+          if(mine&&mine.owner){ const o={...mine.owner,id:gid}; setOwner(o); setName(o.name||""); setConnections(mine.connections||[]); sset(K.owner,o); sset(K.conn,mine.connections||[]);
+            if(API_BASE&&typeof history!=="undefined") history.replaceState(null,"",`?owner=${gid}`);
+            setMode("owner"); setTargetOwner(null);
+            if(o.axes){ setTested(false); setStep("card"); } else { setStep("map"); } return; } }
+        setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
       onBack={()=> mode==="guest" ? (track("guest_make_own",{}),setMode("owner"),setTargetOwner(null),setConnections([]),setOwner(null),setStep("landing")) : setStep("map")}/>}
     {toast&&(<div className="fixed left-1/2 bottom-16 -translate-x-1/2 px-4 py-2 rounded-full text-sm z-50" style={{background:C.ink,color:C.bg}}>{toast}</div>)}
     {devMode&&<button onClick={()=>setShowLog(true)} className="fixed left-3 bottom-3 z-40 text-xs px-2 py-1 rounded-full" style={{background:C.navy,color:"#FBF6EC",opacity:0.8}}>🐞 {events.length}</button>}
