@@ -151,8 +151,8 @@ async function sset(k,v){
 }
 /* 백엔드 API (배포 시). window.__PSYMATCH_API__ 없으면 로컬 폴백 */
 const API_BASE = (typeof window!=="undefined" && window.__PSYMATCH_API__) || "";
-async function apiGet(p){ try{ if(!API_BASE) return null; const r=await fetch(API_BASE+p); return r.ok?await r.json():null; }catch{ return null; } }
-async function apiPost(p,b){ try{ if(!API_BASE) return null; const r=await fetch(API_BASE+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return r.ok?await r.json():null; }catch{ return null; } }
+async function apiGet(p){ try{ const r=await fetch(API_BASE+p); return r.ok?await r.json():null; }catch{ return null; } }
+async function apiPost(p,b){ try{ const r=await fetch(API_BASE+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return r.ok?await r.json():null; }catch{ return null; } }
 function amp(event,props){ try{ if(typeof window!=="undefined" && window.amplitude && window.amplitude.track) window.amplitude.track(event,props); }catch{} }
 function ga(event,props){ try{ if(typeof window!=="undefined" && window.gtag) window.gtag("event",event,props); }catch{} }
 /* 공유 링크에 src·sid 태깅 */
@@ -407,7 +407,7 @@ export default function App(){
     track("session_start",{returning:!!myId,src:refSrc,sid:refSid});
     const restore=async(oid,asOwner)=>{ const m=await apiGet(`/api/map?owner=${oid}`); if(!(m&&m.owner))return false;
       if(asOwner){ const o={...m.owner,id:oid}; setOwner(o); setName(o.name||""); setConnections(m.connections||[]); sset(K.owner,o); sset(K.conn,m.connections||[]);
-        if(API_BASE && typeof history!=="undefined") history.replaceState(null,"",`?owner=${oid}`);
+        if(typeof history!=="undefined") history.replaceState(null,"",`?owner=${oid}`);
         const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
       else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
       return true; };
@@ -426,7 +426,7 @@ export default function App(){
   const makeOwner=async(mbti,axes,isTested)=>{ const base={name:name.trim()||"나",mbti,axes};
     const res=await apiPost("/api/owner",base); const id=(res&&res.ownerId)||uid(); const o={...base,id};
     setOwner(o); sset(K.owner,o); sset(K.myid,id); setTested(isTested);
-    if(API_BASE && typeof history!=="undefined") history.replaceState(null,"",`?owner=${id}`);
+    if(res && res.ownerId && typeof history!=="undefined") history.replaceState(null,"",`?owner=${id}`);
     track("card_view",{mbti,tested:isTested}); setStep("card"); };
   const finishTest=(v)=>{ track("test_complete",{type:tfa(v)}); makeOwner(tfa(v),v,true); };
   const direct=(t)=>{ track("direct_pick",{type:t}); makeOwner(t,t2a(t),false); };
@@ -464,7 +464,7 @@ export default function App(){
       onMakeMine={async()=>{ track("guest_make_own",{}); const gid=guestId||await sget(K.myid);
         if(gid){ const mine=await apiGet(`/api/map?owner=${gid}`);
           if(mine&&mine.owner){ const o={...mine.owner,id:gid}; setOwner(o); setName(o.name||""); setConnections(mine.connections||[]); sset(K.owner,o); sset(K.conn,mine.connections||[]);
-            if(API_BASE&&typeof history!=="undefined") history.replaceState(null,"",`?owner=${gid}`);
+            if(typeof history!=="undefined") history.replaceState(null,"",`?owner=${gid}`);
             setMode("owner"); setTargetOwner(null);
             if(o.axes){ setTested(false); setStep("card"); } else { setStep("map"); } return; } }
         setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
