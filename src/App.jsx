@@ -58,21 +58,24 @@ function blendNote(mbti, axes){
   const alt=mbti.slice(0,idx)+other+mbti.slice(idx+1);
   return `${cur}/${other}가 뚜렷하지 않아, ${alt} 성향도 조금 섞여 있어요.`;
 }
+function hasBatchim(w){ const c=(w||"").slice(-1).charCodeAt(0); return c>=0xAC00 && c<=0xD7A3 ? (c-0xAC00)%28!==0 : false; }
+function J(w,withB,noB){ return w + (hasBatchim(w)?withB:noB); }
 function buildAdvice(mbti, axes){
   const s=STACK[mbti], cl=axes?clarityOf(axes):{EI:100,NS:100,TF:100,JP:100};
   const domCl = cl[domAxis(s[0])];
-  const lead = domCl>=60 ? "특히 " : "";
-  const soft = domCl<30 ? " (다만 이 성향이 아주 뚜렷하진 않아요)" : "";
+  const emph = domCl>=60 ? " (이 성향이 특히 뚜렷한 편이에요)" : (domCl<30 ? " (다만 아주 강한 편은 아니에요)" : "");
   const strengths=[
-    lead+ADVICE[s[0]].s+soft, ADVICE[s[1]].s,
-    `${FLOW[mbti]}. 남들은 잘 못 하는 ‘${ROLE[s[0]]} → ${ROLE[s[1]]}’의 연결이 자연스러워요.`,
-    `잘 살리면 ${ROLE[s[2]]}도 은근한 무기가 돼요. ${ADVICE[s[2]].s}`,
-    `한마디로 ${NICK[mbti]}형 — ${FLOW[mbti]}이라는 점이 당신의 가장 큰 자산이에요.` ];
+    `핵심 강점: ${ADVICE[s[0]].s}${emph}`,
+    `받쳐주는 힘: ${ADVICE[s[1]].s}`,
+    `나만의 조합: 당신은 ${FLOW[mbti]}이에요. ‘${ROLE[s[0]]}’에서 ‘${ROLE[s[1]]}’로 이어지는 흐름이 남들보다 자연스럽죠.`,
+    `숨은 무기: ‘${ROLE[s[2]]}’도 잘 살리면 강점이 돼요. ${ADVICE[s[2]].s}`,
+    `한마디로: ${FLOW[mbti]} — 그게 당신의 가장 큰 자산이에요.` ];
   const weaknesses=[
-    ADVICE[s[0]].c, ADVICE[s[1]].c,
-    `아직 서툰 ${ROLE[s[2]]}이 건드려지면 예민해질 수 있어요. ${ADVICE[s[2]].c}`,
-    `스트레스가 쌓이면 평소 잘 안 쓰던 ${ROLE[s[3]]}이 서툴게 튀어나와요. ${ADVICE[s[3]].c}`,
-    `성장 포인트 — 강한 ${ROLE[s[0]]}에 치우치지 않게, 약한 ${ROLE[s[3]]}을 조금씩 의식하면 훨씬 균형 잡혀요.` ];
+    `강점의 그림자: ${ADVICE[s[0]].c}`,
+    `보조기능 주의: ${ADVICE[s[1]].c}`,
+    `아직 서툰 부분: ‘${ROLE[s[2]]}’ 영역은 아직 덜 여물었어요. 이 부분이 건드려지면 예민해질 수 있어요. ${ADVICE[s[2]].c}`,
+    `지칠 때 나오는 모습: 스트레스가 쌓이면 평소 잘 안 쓰던 ‘${ROLE[s[3]]}’ 쪽이 서툴게 튀어나와요. ${ADVICE[s[3]].c}`,
+    `성장 포인트: 강한 ‘${ROLE[s[0]]}’에만 치우치지 말고, 약한 ‘${ROLE[s[3]]}’도 조금씩 의식하면 훨씬 균형이 잡혀요.` ];
   return { strengths, weaknesses, clarity:cl, blend:axes?blendNote(mbti,axes):null };
 }
 const FN_KO = { Ni:"내향 직관(Ni)", Ne:"외향 직관(Ne)", Si:"내향 감각(Si)", Se:"외향 감각(Se)", Ti:"내향 사고(Ti)", Te:"외향 사고(Te)", Fi:"내향 감정(Fi)", Fe:"외향 감정(Fe)" };
@@ -344,7 +347,7 @@ function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
       <p className="text-sm mb-1" style={{color:C.faint}}>{owner.name}님의 관계 지도</p>
       <h1 className="font-serif text-2xl mb-1" style={{color:C.ink}}>🧭 {NICK[owner.mbti]}형</h1>
       <p className="text-sm mb-3" style={{color:C.sub}}>{FLOW[owner.mbti]}</p>
-      <p className="text-sm leading-relaxed" style={{color:C.faint}}>🎯 {owner.name}님은 {ROLE[ownerInf]}이 약한 편이라, 그걸 채워주는 사람이 특히 귀해요.</p></div>
+      <p className="text-sm leading-relaxed" style={{color:C.faint}}>🎯 {owner.name}님은 {ROLE[ownerInf]} 쪽이 약한 편이라, 그걸 채워주는 사람이 특히 귀해요.</p></div>
     {result?(<div className="rounded-3xl p-6" style={{background:C.panel,border:`1px solid ${C.line}`}}>
       <p className="text-sm mb-1" style={{color:C.faint}}>{result.name} · {result.mbti}</p>
       <div className="flex items-end gap-2 mb-1"><span className="font-serif leading-none" style={{fontSize:56,color:C.gold}}>{result.chemi}</span>
@@ -395,7 +398,8 @@ export default function App(){
   const [showLog,setShowLog]=useState(false); const [ready,setReady]=useState(false);
   const [mode,setMode]=useState("owner"); const [targetOwner,setTargetOwner]=useState(null);
   const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null);
-  const devMode = (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1";
+  const [devMode] = useState(()=> (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1");
+  const q=(id)=> "?owner="+id+(devMode?"&debug=1":"");
 
   const track=useCallback((event,props={})=>{ amp(event,props); ga(event,props); setEvents(prev=>{ const ev={event,ts:Date.now(),...props}; const next=[...prev,ev].slice(-100); sset(K.log,next); return next; }); },[]);
 
@@ -407,7 +411,7 @@ export default function App(){
     track("session_start",{returning:!!myId,src:refSrc,sid:refSid});
     const restore=async(oid,asOwner)=>{ const m=await apiGet(`/api/map?owner=${oid}`); if(!(m&&m.owner))return false;
       if(asOwner){ const o={...m.owner,id:oid}; setOwner(o); setName(o.name||""); setConnections(m.connections||[]); sset(K.owner,o); sset(K.conn,m.connections||[]);
-        if(typeof history!=="undefined") history.replaceState(null,"",`?owner=${oid}`);
+        if(typeof history!=="undefined") history.replaceState(null,"",q(oid));
         const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
       else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
       return true; };
@@ -426,7 +430,7 @@ export default function App(){
   const makeOwner=async(mbti,axes,isTested)=>{ const base={name:name.trim()||"나",mbti,axes};
     const res=await apiPost("/api/owner",base); const id=(res&&res.ownerId)||uid(); const o={...base,id};
     setOwner(o); sset(K.owner,o); sset(K.myid,id); setTested(isTested);
-    if(res && res.ownerId && typeof history!=="undefined") history.replaceState(null,"",`?owner=${id}`);
+    if(res && res.ownerId && typeof history!=="undefined") history.replaceState(null,"",q(id));
     track("card_view",{mbti,tested:isTested}); setStep("card"); };
   const finishTest=(v)=>{ track("test_complete",{type:tfa(v)}); makeOwner(tfa(v),v,true); };
   const direct=(t)=>{ track("direct_pick",{type:t}); makeOwner(t,t2a(t),false); };
@@ -464,7 +468,7 @@ export default function App(){
       onMakeMine={async()=>{ track("guest_make_own",{}); const gid=guestId||await sget(K.myid);
         if(gid){ const mine=await apiGet(`/api/map?owner=${gid}`);
           if(mine&&mine.owner){ const o={...mine.owner,id:gid}; setOwner(o); setName(o.name||""); setConnections(mine.connections||[]); sset(K.owner,o); sset(K.conn,mine.connections||[]);
-            if(typeof history!=="undefined") history.replaceState(null,"",`?owner=${gid}`);
+            if(typeof history!=="undefined") history.replaceState(null,"",q(gid));
             setMode("owner"); setTargetOwner(null);
             if(o.axes){ setTested(false); setStep("card"); } else { setStep("map"); } return; } }
         setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
