@@ -139,9 +139,16 @@ function scoreVector(res){ const raw={EI:0,NS:0,TF:0,JP:0},cnt={EI:0,NS:0,TF:0,J
 
 /* ═══ 로깅 · 영속 ═══ */
 const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last", myid:"psymatch:myid" };
-const hasStore = typeof window!=="undefined" && window.storage;
-async function sget(k){ try{ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; }catch{ return null; } }
-async function sset(k,v){ try{ if(hasStore) await window.storage.set(k, JSON.stringify(v), false); }catch{} }
+const hasLS = (typeof window!=="undefined") && (()=>{ try{ window.localStorage.setItem("__t","1"); window.localStorage.removeItem("__t"); return true; }catch{ return false; } })();
+async function sget(k){
+  try{ if(hasLS){ const v=window.localStorage.getItem(k); return v==null?null:JSON.parse(v); } }catch{}
+  try{ if(typeof window!=="undefined" && window.storage){ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; } }catch{}
+  return null;
+}
+async function sset(k,v){
+  try{ if(hasLS){ window.localStorage.setItem(k, JSON.stringify(v)); return; } }catch{}
+  try{ if(typeof window!=="undefined" && window.storage){ await window.storage.set(k, JSON.stringify(v), false); } }catch{}
+}
 /* 백엔드 API (배포 시). window.__PSYMATCH_API__ 없으면 로컬 폴백 */
 const API_BASE = (typeof window!=="undefined" && window.__PSYMATCH_API__) || "";
 async function apiGet(p){ try{ if(!API_BASE) return null; const r=await fetch(API_BASE+p); return r.ok?await r.json():null; }catch{ return null; } }
