@@ -411,8 +411,9 @@ export default function App(){
         const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
       else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
       return true; };
-    // 남의 지도 링크 → 게스트
-    if(ownerParam && ownerParam!==myId){ if(await restore(ownerParam,false)) return; }
+    // 남의 지도 링크 → 게스트 (초대 링크는 절대 내 지도로 튕기지 않음)
+    if(ownerParam && ownerParam!==myId){ if(await restore(ownerParam,false)) return;
+      setReady(true); track("landing_view",{src:refSrc,sid:refSid}); return; }
     // 내 지도 복귀 (내 링크로 왔거나 기본 주소지만 내 id 저장됨)
     const myOid=(ownerParam && ownerParam===myId)?ownerParam:myId;
     if(myOid){ if(await restore(myOid,true)) return; }
