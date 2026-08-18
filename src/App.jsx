@@ -270,12 +270,26 @@ function OrbitMap({nodes,selected,onSelect,me}){
     <div className="px-4 pt-4 pb-1 flex items-center justify-between"><span className="text-sm font-bold" style={{color:"#EDEFFA"}}>관계 지도 · {nodes.length}명</span>
       <span className="text-xs" style={{color:"#8A93BE"}}>가운데(나)에 가까울수록 케미 ↑</span></div>
     <svg viewBox="0 0 100 100" className="w-full" style={{display:"block"}}>
-      {[18,30,42].map(r=><circle key={r} cx="50" cy="50" r={r} fill="none" stroke={C.mapRing} strokeWidth="0.3" strokeDasharray="1 1.5"/>)}
-      {[...Array(40)].map((_,i)=>{const a=(i*137.5)*Math.PI/180,rr=6+(i%7)*6;return <circle key={i} cx={50+rr*Math.cos(a)} cy={50+rr*Math.sin(a)} r="0.25" fill={C.star}/>;})}
+      <style>{`
+        .mstar{animation:twk 3s ease-in-out infinite}
+        @keyframes twk{0%,100%{opacity:.18}50%{opacity:1}}
+        .mglow{animation:gl 3.6s ease-in-out infinite}
+        @keyframes gl{0%,100%{opacity:.10}50%{opacity:.32}}
+        .mnode{animation:nd 2.6s ease-in-out infinite}
+        @keyframes nd{0%,100%{opacity:.12}50%{opacity:.28}}
+        @media (prefers-reduced-motion:reduce){.mstar,.mglow,.mnode{animation:none!important}}
+      `}</style>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="160s" repeatCount="indefinite"/>
+        {[18,30,42].map(r=><circle key={r} cx="50" cy="50" r={r} fill="none" stroke={C.mapRing} strokeWidth="0.3" strokeDasharray="1 1.5"/>)}
+        {[...Array(48)].map((_,i)=>{const a=(i*137.5)*Math.PI/180,rr=6+(i%8)*5.5;const big=i%6===0;return <circle key={i} className="mstar" style={{animationDelay:`${(i%9)*0.35}s`}} cx={50+rr*Math.cos(a)} cy={50+rr*Math.sin(a)} r={big?"0.45":"0.25"} fill={big?"#EED9A6":C.star}/>;})}
+      </g>
       {nodes.map(p=><line key={"l"+p.name} x1="50" y1="50" x2={p.x} y2={p.y} stroke={selected===p.name?TYPE_COLOR[p.type]:C.mapRing} strokeWidth={selected===p.name?"0.5":"0.3"} opacity="0.8"/>)}
+      <circle className="mglow" cx="50" cy="50" r="11" fill={C.gold}/>
       <circle cx="50" cy="50" r="8" fill={C.gold} opacity="0.18"/><circle cx="50" cy="50" r="5.5" fill={C.gold}/>
       <text x="50" y="50.7" textAnchor="middle" fontSize="2.4" fontWeight="700" fill={C.navy}>{me||"나"}</text>
       {nodes.map(p=>(<g key={p.name} onClick={()=>onSelect(p.name)} style={{cursor:"pointer"}} className="orbit-node">
+        <circle className="mnode" cx={p.x} cy={p.y} r={p.size+3} fill={TYPE_COLOR[p.type]}/>
         <circle cx={p.x} cy={p.y} r={p.size+2} fill={TYPE_COLOR[p.type]} opacity={selected===p.name?0.28:0.14}/>
         <circle cx={p.x} cy={p.y} r={p.size} fill={TYPE_COLOR[p.type]} stroke={selected===p.name?"#fff":"none"} strokeWidth="0.4"/>
         <text x={p.x} y={p.y+0.9} textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#fff">{p.mbti.slice(0,2)}</text>
