@@ -448,7 +448,8 @@ export default function App(){
       const resp=await apiPost("/api/connection",{owner:oid,conn:r,guestOwnerId:gExisting||null,guestSelf:(mode==="guest"?{axes:r.gaxes||null}:null)});
       if(mode==="guest" && resp && resp.guestOwnerId){ sset(K.myid,resp.guestOwnerId); setGuestId(resp.guestOwnerId); } }
     track("add_submit",{mbti:r.mbti,chemi:r.chemi}); };
-  const delConn=(nm)=>{ const next=connections.filter(c=>c.name!==nm); setConnections(next); sset(K.conn,next); track("connection_delete",{}); };
+  const delConn=async(nm)=>{ const next=connections.filter(c=>c.name!==nm); setConnections(next); sset(K.conn,next); track("connection_delete",{});
+    const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id)); if(oid) await apiPost("/api/delete",{owner:oid,name:nm}); };
   const share=async(surface)=>{ const oid=owner&&owner.id; const {url,sid}=buildShareUrl(oid,"link");
     track("share_click",{surface,sid});
     try{ if(typeof navigator!=="undefined"&&navigator.clipboard){ await navigator.clipboard.writeText(url); }
