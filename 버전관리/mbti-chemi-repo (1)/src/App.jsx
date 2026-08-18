@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 /* ═══ 팔레트 · 이미지 ═══ */
-const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV6ORfxUjTkCLUrJdBUnYYN88XQDxacT8C6tjG_wWXILQSRQ/viewform?embedded=true";
 const C = { bg:"#EFE7D6", panel:"#FBF6EC", panel2:"#F4ECDB", soft:"#EDE3CF", line:"#E1D6BF",
   ink:"#2C2823", sub:"#6E6553", faint:"#9A8F79", navy:"#1E2547", gold:"#B58412", blue:"#2F6DA6", red:"#BB463B", indigo:"#3E4A7A", green:"#5B7A4B",
   mapBg:"#141A33", mapRing:"#2A3358", star:"#3A4570" };
@@ -18,16 +17,16 @@ const STACK = { INTJ:["Ni","Te","Fi","Se"],ENTJ:["Te","Ni","Se","Fi"],INFJ:["Ni"
   ISTJ:["Si","Te","Fi","Ne"],ESTJ:["Te","Si","Ne","Fi"],ISFJ:["Si","Fe","Ti","Ne"],ESFJ:["Fe","Si","Ne","Ti"] };
 const NICK = { INTJ:"큰그림 전략가",ENTJ:"밀어붙이는 지휘관",INFJ:"의미를 읽는 통찰가",ENFJ:"사람을 이끄는 조율가",INTP:"파고드는 분석가",ENTP:"판을 흔드는 발상가",INFP:"가치를 지키는 몽상가",ENFP:"불붙이는 탐험가",ISTP:"손으로 푸는 해결사",ESTP:"현장의 승부사",ISFP:"결대로 사는 예술가",ESFP:"지금을 즐기는 무대체질",ISTJ:"믿음직한 관리자",ESTJ:"체계를 세우는 실행가",ISFJ:"조용히 챙기는 수호자",ESFJ:"살뜰한 살림꾼" };
 const FLOW = { INTJ:"멀리 보고 구조를 세우는 사람",ENTJ:"목표를 향해 판을 끌고 가는 사람",INFJ:"본질을 읽어 의미로 잇는 사람",ENFJ:"사람을 한 방향으로 모으는 사람",INTP:"원리를 파고들어 이해하는 사람",ENTP:"가능성을 던지고 검증하는 사람",INFP:"소중한 가치를 넓게 펼치는 사람",ENFP:"가능성에 불을 붙이는 사람",ISTP:"직접 해보며 푸는 사람",ESTP:"지금 현장을 장악하는 사람",ISFP:"내 결대로 지금을 사는 사람",ESFP:"순간을 즐기며 사는 사람",ISTJ:"검증된 방식으로 쌓는 사람",ESTJ:"체계를 세워 굴리는 사람",ISFJ:"조용히 곁을 챙기는 사람",ESFJ:"살뜰히 관계를 돌보는 사람" };
-const ROLE = { Ni:"미래를 내다보는 감", Ne:"아이디어를 떠올리는 힘", Si:"경험으로 꼼꼼히 챙기는 힘", Se:"지금 상황에 바로 반응하는 감각", Ti:"논리로 따져보는 힘", Te:"일을 밀어붙여 끝내는 추진력", Fi:"내 가치관을 지키는 마음", Fe:"주변 사람을 살피는 마음" };
+const ROLE = { Ni:"큰 그림 읽기",Ne:"가능성 넓히기",Si:"경험으로 다지기",Se:"현장 감각",Ti:"원리 분석",Te:"효율적 실행",Fi:"내 기준 지키기",Fe:"관계 조율" };
 const ADVICE = {
-  Ni:{s:"복잡한 상황에서도 ‘결국 이렇게 흘러가겠다’는 큰 방향을 잘 잡아요. 핵심을 빨리 짚는 편이에요.",c:"한번 확신하면 밀어붙이는 경향이 있어요. 중요한 결정 전엔 다른 가능성도 한 번 열어두면 좋아요."},
-  Ne:{s:"새로운 아이디어가 잘 떠오르고, 이것저것 연결해 새로운 걸 시작하는 데 강해요.",c:"관심이 여러 곳으로 흩어져 끝맺음이 약해질 수 있어요. 벌인 일 중 하나는 끝까지 마무리해 보세요."},
-  Si:{s:"해야 할 걸 빠뜨리지 않고 꼼꼼히 챙겨요. 검증된 방식으로 안정감 있게 해내는 게 강점이에요.",c:"익숙한 방식만 고집하다 변화가 늦어질 수 있어요. 가끔은 새로운 방법도 시도해 보세요."},
-  Se:{s:"지금 벌어지는 일에 빠르게 반응하고 바로 움직여요. 순발력과 현장 대처가 좋아요.",c:"눈앞의 것에 끌려 즉흥적으로 결정할 때가 있어요. 큰 일은 잠깐 멈춰 생각하고 정하면 좋아요."},
-  Ti:{s:"‘왜 그런지’ 원리를 파고들어 논리적으로 이해해요. 문제의 허점을 잘 찾아내요.",c:"생각이 길어져 실행이 늦어질 수 있어요. 완벽하지 않아도 일단 시작하는 연습을 해보세요."},
-  Te:{s:"목표가 정해지면 효율적으로 밀어붙여 결과를 만들어내요. 계획하고 실행하는 힘이 강해요.",c:"효율을 챙기다 사람 감정을 놓칠 때가 있어요. 정답보다 공감이 필요한 순간을 살펴보세요."},
-  Fi:{s:"무엇이 옳고 소중한지 자기 기준이 뚜렷해서 남에게 쉽게 휩쓸리지 않아요.",c:"속마음을 잘 표현하지 않아 혼자 담아두다 멀어질 수 있어요. 불편한 건 그때그때 말해보세요."},
-  Fe:{s:"분위기와 상대의 기분을 잘 읽어서 사람들과 두루 잘 지내요. 관계를 부드럽게 만들어요.",c:"남을 챙기다 정작 내 마음은 뒤로 밀릴 수 있어요. 내가 뭘 원하는지도 챙겨주세요."} };
+  Ni:{s:"여러 정보를 하나의 큰 그림으로 꿰는 힘이 있어요. 방향을 잡거나 핵심을 짚는 일에서 빛나요.",c:"가끔 그 직감이 너무 확실해서 밀어붙이게 돼요. 큰 결정 전엔 반대 근거도 한 번 살펴보면 좋아요."},
+  Ne:{s:"하나를 보면 열 가지 가능성이 떠오르는 아이디어 뱅크예요. 새로 시작하고 연결짓는 데 강해요.",c:"관심이 사방으로 튀어 마무리가 약해질 수 있어요. 벌인 것 중 하나는 끝까지 붙잡아 보세요."},
+  Si:{s:"겪어본 것과 검증된 방식을 착실히 쌓아 안정감을 줘요. 꼼꼼함과 신뢰가 무기예요.",c:"익숙한 방식에 머물다 변화가 늦어질 수 있어요. 가끔은 새 방법도 한 번 시도해 보세요."},
+  Se:{s:"지금 이 순간의 현실을 빠르게 읽고 바로 움직여요. 현장 대응과 감각이 살아 있어요.",c:"눈앞 자극에 끌려 즉흥으로 흐를 수 있어요. 큰 일은 잠깐 멈춰 앞을 보고 정하면 좋아요."},
+  Ti:{s:"원리를 파고들어 딱 맞아떨어지게 이해하는 힘이 있어요. 문제의 구조를 잘 봐요.",c:"생각만 깊어지다 실행이 늦어질 수 있어요. 완벽하지 않아도 일단 내보내는 연습을 해보세요."},
+  Te:{s:"목표를 정하면 가장 효율적인 길로 밀어붙여 결과를 만들어요. 정리와 실행이 강점이에요.",c:"효율에 집중하다 사람 감정을 지나칠 수 있어요. 답보다 공감이 필요한 순간을 살펴보세요."},
+  Fi:{s:"무엇이 옳고 소중한지 분명한 내 기준이 있어 쉽게 휩쓸리지 않아요.",c:"속마음을 잘 안 꺼내 혼자 삭이다 멀어질 수 있어요. 불편함은 그때그때 짧게 말해보세요."},
+  Fe:{s:"주변 분위기와 사람의 필요를 잘 읽어 관계를 부드럽게 이어요. 조율의 달인이에요.",c:"남을 챙기다 내 마음이 뒤로 밀릴 수 있어요. 내가 뭘 원하는지도 챙겨주세요."} };
 const poles = (t)=>{ let p,j; for(const fn of STACK[t].slice(0,2)) F[fn][2]==="p"?(p=fn):(j=fn); return [p,j]; };
 const ei = (t)=> F[STACK[t][0]][1]==="e"?"E":"I";
 const bucket = (x,y)=>{ const sl=F[x][0]===F[y][0], so=F[x][1]===F[y][1]; return sl&&so?"ALIGN":sl&&!so?"KIN":!sl&&so?"CONTRAST":"COMPLEMENT"; };
@@ -59,24 +58,21 @@ function blendNote(mbti, axes){
   const alt=mbti.slice(0,idx)+other+mbti.slice(idx+1);
   return `${cur}/${other}가 뚜렷하지 않아, ${alt} 성향도 조금 섞여 있어요.`;
 }
-function hasBatchim(w){ const c=(w||"").slice(-1).charCodeAt(0); return c>=0xAC00 && c<=0xD7A3 ? (c-0xAC00)%28!==0 : false; }
-function J(w,withB,noB){ return w + (hasBatchim(w)?withB:noB); }
 function buildAdvice(mbti, axes){
   const s=STACK[mbti], cl=axes?clarityOf(axes):{EI:100,NS:100,TF:100,JP:100};
   const domCl = cl[domAxis(s[0])];
-  const emph = domCl>=60 ? " (특히 이 성향이 뚜렷해요)" : (domCl<30 ? " (다만 아주 강한 편은 아니에요)" : "");
+  const lead = domCl>=60 ? "특히 " : "";
+  const soft = domCl<30 ? " (다만 이 성향이 아주 뚜렷하진 않아요)" : "";
   const strengths=[
-    `핵심 강점: ${ADVICE[s[0]].s}${emph}`,
-    `받쳐주는 힘: ${ADVICE[s[1]].s}`,
-    `당신다운 점: 한마디로 ${FLOW[mbti]}이에요. ${ROLE[s[0]]}에 ${ROLE[s[1]]}이 더해져, 방향을 잡고 실제로 해내는 흐름이 자연스러워요.`,
-    `숨은 무기: ${ADVICE[s[2]].s} 평소엔 잘 안 드러나지만, 잘 살리면 강점이 돼요.`,
-    `종합하면: ${NICK[mbti]} 스타일이에요. ${FLOW[mbti]}이라는 점이 가장 큰 자산이에요.` ];
+    lead+ADVICE[s[0]].s+soft, ADVICE[s[1]].s,
+    `${FLOW[mbti]}. 남들은 잘 못 하는 ‘${ROLE[s[0]]} → ${ROLE[s[1]]}’의 연결이 자연스러워요.`,
+    `잘 살리면 ${ROLE[s[2]]}도 은근한 무기가 돼요. ${ADVICE[s[2]].s}`,
+    `한마디로 ${NICK[mbti]}형 — ${FLOW[mbti]}이라는 점이 당신의 가장 큰 자산이에요.` ];
   const weaknesses=[
-    `강점의 그림자: ${ADVICE[s[0]].c}`,
-    `함께 주의할 점: ${ADVICE[s[1]].c}`,
-    `아직 서툰 부분: ${ROLE[s[2]]}은 아직 덜 익은 편이에요. ${ADVICE[s[2]].c}`,
-    `지칠 때 나오는 모습: 스트레스가 쌓이면 평소 잘 안 쓰던 ${ROLE[s[3]]}이 서툴게 튀어나올 수 있어요. ${ADVICE[s[3]].c}`,
-    `성장 포인트: 잘하는 것에만 기대지 말고, ${ROLE[s[3]]}을 조금씩 의식하면 훨씬 균형이 잡혀요.` ];
+    ADVICE[s[0]].c, ADVICE[s[1]].c,
+    `아직 서툰 ${ROLE[s[2]]}이 건드려지면 예민해질 수 있어요. ${ADVICE[s[2]].c}`,
+    `스트레스가 쌓이면 평소 잘 안 쓰던 ${ROLE[s[3]]}이 서툴게 튀어나와요. ${ADVICE[s[3]].c}`,
+    `성장 포인트 — 강한 ${ROLE[s[0]]}에 치우치지 않게, 약한 ${ROLE[s[3]]}을 조금씩 의식하면 훨씬 균형 잡혀요.` ];
   return { strengths, weaknesses, clarity:cl, blend:axes?blendNote(mbti,axes):null };
 }
 const FN_KO = { Ni:"내향 직관(Ni)", Ne:"외향 직관(Ne)", Si:"내향 감각(Si)", Se:"외향 감각(Se)", Ti:"내향 사고(Ti)", Te:"외향 사고(Te)", Fi:"내향 감정(Fi)", Fe:"외향 감정(Fe)" };
@@ -117,7 +113,6 @@ const CARE = { 보완형:"방식이 서로 달라 처음엔 ‘왜 저러지’ 
   긴장형:"판단 기준이 정반대라, 급할 때 부딪히면 감정 소모가 커요. 함께 정하기 전에 ‘이번엔 뭘 우선할지’를 먼저 맞춰두면 충돌이 자극으로 바뀌어요.",
   독립형:"성향이 달라 깊은 속마음까진 잘 안 닿을 수 있어요. 서로를 바꾸려 들면 지치기 쉬우니, 각자의 방식을 인정하는 게 이 관계를 오래 편하게 만들어요." };
 const LEGEND = { 이해형:"같은 방식으로 이해하는 관계 — 나를 가장 잘 이해하는 사람.",보완형:"내가 못 보는 걸 보여주는 관계 — 나에게 없는 걸 가진 사람.",긴장형:"서로를 강하게 자극하는 관계 — 나를 가장 많이 자극하는 사람.",독립형:"서로 다른 세계를 존중하는 관계 — 각자의 세계를 지키는 사람." };
-const DOM_ORDER=["보완","이해","긴장","자율"]; const LEGEND_ORDER=["보완형","이해형","긴장형","독립형"];
 const DOMAIN_EXPLAIN = { 이해:"서로의 사고방식을 얼마나 쉽게 알아듣는가예요. 높을수록 설명 안 해도 통하고, 낮으면 서로 ‘왜 저렇게 생각하지?’ 싶어져요.",
   보완:"서로의 부족한 부분을 얼마나 채워주는가예요. 높을수록 내가 약한 영역을 상대가 메워줘요. 결이 다를 때 올라가요.",
   긴장:"핵심 가치나 방식이 얼마나 부딪히는가예요. 높을수록 자주 충돌하지만 그만큼 서로를 자극해요. 판단 기준이 정반대일 때 올라가요.",
@@ -143,21 +138,14 @@ function scoreVector(res){ const raw={EI:0,NS:0,TF:0,JP:0},cnt={EI:0,NS:0,TF:0,J
   const a={}; Object.keys(raw).forEach(ax=>a[ax]=raw[ax]/(cnt[ax]*2)); return a; }
 
 /* ═══ 로깅 · 영속 ═══ */
-const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last", myid:"psymatch:myid" };
-const hasLS = (typeof window!=="undefined") && (()=>{ try{ window.localStorage.setItem("__t","1"); window.localStorage.removeItem("__t"); return true; }catch{ return false; } })();
-async function sget(k){
-  try{ if(hasLS){ const v=window.localStorage.getItem(k); return v==null?null:JSON.parse(v); } }catch{}
-  try{ if(typeof window!=="undefined" && window.storage){ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; } }catch{}
-  return null;
-}
-async function sset(k,v){
-  try{ if(hasLS){ window.localStorage.setItem(k, JSON.stringify(v)); return; } }catch{}
-  try{ if(typeof window!=="undefined" && window.storage){ await window.storage.set(k, JSON.stringify(v), false); } }catch{}
-}
+const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last" };
+const hasStore = typeof window!=="undefined" && window.storage;
+async function sget(k){ try{ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; }catch{ return null; } }
+async function sset(k,v){ try{ if(hasStore) await window.storage.set(k, JSON.stringify(v), false); }catch{} }
 /* 백엔드 API (배포 시). window.__PSYMATCH_API__ 없으면 로컬 폴백 */
 const API_BASE = (typeof window!=="undefined" && window.__PSYMATCH_API__) || "";
-async function apiGet(p){ try{ const r=await fetch(API_BASE+p); return r.ok?await r.json():null; }catch{ return null; } }
-async function apiPost(p,b){ try{ const r=await fetch(API_BASE+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return r.ok?await r.json():null; }catch{ return null; } }
+async function apiGet(p){ try{ if(!API_BASE) return null; const r=await fetch(API_BASE+p); return r.ok?await r.json():null; }catch{ return null; } }
+async function apiPost(p,b){ try{ if(!API_BASE) return null; const r=await fetch(API_BASE+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return r.ok?await r.json():null; }catch{ return null; } }
 function amp(event,props){ try{ if(typeof window!=="undefined" && window.amplitude && window.amplitude.track) window.amplitude.track(event,props); }catch{} }
 function ga(event,props){ try{ if(typeof window!=="undefined" && window.gtag) window.gtag("event",event,props); }catch{} }
 /* 공유 링크에 src·sid 태깅 */
@@ -290,16 +278,11 @@ function Counts({nodes}){ const by={보완형:0,이해형:0,긴장형:0,독립�
 function ExplainBox({onOpen}){ const [open,setOpen]=useState(false);
   return (<div className="rounded-2xl mt-3" style={{background:C.panel,border:`1px solid ${C.line}`}}>
     <button onClick={()=>setOpen(v=>{ if(!v&&onOpen)onOpen(); return !v; })} className="w-full flex items-center justify-between p-4 text-left">
-      <span className="text-sm font-bold" style={{color:C.ink}}>보완·이해·긴장·자율이 뭐예요? <span style={{color:C.indigo}}>제대로 알아보기</span></span>
+      <span className="text-sm font-bold" style={{color:C.ink}}>이해·보완·긴장·자율이 뭐예요? <span style={{color:C.indigo}}>제대로 알아보기</span></span>
       <span className="text-sm" style={{color:C.faint}}>{open?"▲":"▼"}</span></button>
-    {open&&(<div className="px-4 pb-4">{DOM_ORDER.map(k=>(
+    {open&&(<div className="px-4 pb-4">{["이해","보완","긴장","자율"].map(k=>(
       <p key={k} className="text-sm leading-relaxed mb-2" style={{color:C.sub}}><b style={{color:domColor[k]}}>{k}</b> · {DOMAIN_EXPLAIN[k]}</p>))}
       <p className="text-xs leading-relaxed mt-1" style={{color:C.faint}}>케미 점수는 이해·보완을 크게, 긴장을 비용으로 반영해 계산돼요.</p></div>)}</div>);
-}
-function LegendBox(){
-  return (<div className="rounded-2xl p-4 mt-4" style={{background:C.panel,border:`1px solid ${C.line}`}}>
-    <p className="text-sm font-bold mb-2" style={{color:C.ink}}>관계 유형은 무슨 뜻인가요?</p>
-    {LEGEND_ORDER.map(t=><p key={t} className="text-sm leading-relaxed mb-1.5" style={{color:C.sub}}><b style={{color:TYPE_COLOR[t]}}>{TYPE_ICON[t]} {t}</b> · {LEGEND[t]}</p>)}</div>);
 }
 function ListItem({p,rank,open,onToggle,onDelete}){
   return (<div className="rounded-2xl p-4" style={{background:C.panel,border:`1px solid ${open?TYPE_COLOR[p.type]:C.line}`}}>
@@ -311,7 +294,7 @@ function ListItem({p,rank,open,onToggle,onDelete}){
       <span className="font-serif text-2xl" style={{color:C.gold}}>{p.chemi}</span></button>
     <p className="text-sm leading-relaxed mt-2" style={{color:C.ink}}>{ONE[p.type]}</p>
     {open&&(<div className="mt-3 pt-3" style={{borderTop:`1px solid ${C.line}`}}>
-      <div className="flex gap-1.5 mb-3">{DOM_ORDER.map(k=>(
+      <div className="flex gap-1.5 mb-3">{["이해","보완","긴장","자율"].map(k=>(
         <div key={k} className="flex-1 text-center rounded-lg py-1.5" style={{background:C.panel2}}><div className="text-xs" style={{color:C.faint}}>{k}</div>
           <div className="font-mono text-sm font-bold" style={{color:C.ink}}>{p.scores[k]}</div></div>))}</div>
       <p className="text-sm leading-relaxed mb-3" style={{color:C.sub}}><b style={{color:C.red}}>조심할 점 · </b>{CARE[p.type]}</p>
@@ -328,7 +311,9 @@ function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExpla
     {nodes.length===0 ? (<div className="rounded-2xl p-6 text-center" style={{background:C.panel,border:`1px dashed ${C.line}`}}><p className="text-sm" style={{color:C.sub}}>아직 아무도 없어요. 친구에게 공유하면 여기에 케미가 쌓여요.</p></div>) : (
     <div className="space-y-2">{nodes.map((p,i)=>(<ListItem key={p.name} p={p} rank={i} open={selected===p.name}
       onToggle={()=>{const ns=selected===p.name?null:p.name; setSelected(ns); if(ns) onSelectLog(p);}} onDelete={()=>onDelete(p.name)}/>))}</div>)}
-    <LegendBox/>
+    <div className="rounded-2xl p-4 mt-4" style={{background:C.panel,border:`1px solid ${C.line}`}}>
+      <p className="text-sm font-bold mb-2" style={{color:C.ink}}>관계 유형은 무슨 뜻인가요?</p>
+      {Object.keys(LEGEND).map(t=><p key={t} className="text-sm leading-relaxed mb-1.5" style={{color:C.sub}}><b style={{color:TYPE_COLOR[t]}}>{TYPE_ICON[t]} {t}</b> · {LEGEND[t]}</p>)}</div>
     <div className="rounded-2xl p-4 mt-4 text-center" style={{background:C.panel2,border:`1px dashed ${C.gold}`}}>
       <p className="text-sm font-semibold mb-1" style={{color:C.ink}}>🧡 친구에게 공유해보세요</p>
       <p className="text-xs mb-3" style={{color:C.sub}}>친구가 MBTI만 넣으면 {owner.name}님과 어떤 케미인지 지도에 나타나요.<br/>지금 {nodes.length}명이 올라왔어요.</p>
@@ -339,29 +324,28 @@ function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExpla
 }
 
 /* ═══ 화면: /add 게스트 합류 ═══ */
-function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
+function AddScreen({owner,onSubmit,onBack,guest}){
   const [name,setName]=useState(""); const [d,setD]=useState({ei:"",sn:"",tf:"",jp:""}); const [result,setResult]=useState(null);
   const mbti=`${d.ei}${d.sn}${d.tf}${d.jp}`; const full=mbti.length===4&&STACK[mbti];
   const Row=({field,left,right})=>(<div className="flex gap-2 mb-2">{[left,right].map(([lab,v])=>(
     <button key={v} onClick={()=>setD({...d,[field]:v})} className="flex-1 rounded-xl py-2.5 text-sm font-semibold"
       style={{background:d[field]===v?C.navy:C.panel2,color:d[field]===v?"#FBF6EC":C.sub,border:`1px solid ${C.line}`}}>{lab}</button>))}</div>);
-  const submit=()=>{ if(!(name.trim()&&full))return; const gaxes=t2a(mbti); const r={name:name.trim(),mbti,gaxes,...chemi(owner.axes,gaxes)}; setResult(r); onSubmit(r); };
+  const submit=()=>{ if(!(name.trim()&&full))return; const r={name:name.trim(),mbti,...chemi(owner.axes,t2a(mbti))}; setResult(r); onSubmit(r); };
   const ownerInf=STACK[owner.mbti][3];
   return (<div className="mx-auto max-w-md px-4 py-6">
     <div className="rounded-3xl p-6 mb-5 text-center" style={{background:C.panel,border:`1px solid ${C.line}`,boxShadow:"0 2px 8px rgba(44,40,35,0.06)"}}>
       <p className="text-sm mb-1" style={{color:C.faint}}>{owner.name}님의 관계 지도</p>
       <h1 className="font-serif text-2xl mb-1" style={{color:C.ink}}>🧭 {NICK[owner.mbti]}형</h1>
       <p className="text-sm mb-3" style={{color:C.sub}}>{FLOW[owner.mbti]}</p>
-      <p className="text-sm leading-relaxed" style={{color:C.faint}}>🎯 {owner.name}님은 {ROLE[ownerInf]} 쪽이 약한 편이라, 그걸 채워주는 사람이 특히 귀해요.</p></div>
+      <p className="text-sm leading-relaxed" style={{color:C.faint}}>🎯 {owner.name}님은 {ROLE[ownerInf]}이 약한 편이라, 그걸 채워주는 사람이 특히 귀해요.</p></div>
     {result?(<div className="rounded-3xl p-6" style={{background:C.panel,border:`1px solid ${C.line}`}}>
       <p className="text-sm mb-1" style={{color:C.faint}}>{result.name} · {result.mbti}</p>
       <div className="flex items-end gap-2 mb-1"><span className="font-serif leading-none" style={{fontSize:56,color:C.gold}}>{result.chemi}</span>
         <span className="mb-2 text-sm px-2 py-0.5 rounded-full" style={{background:C.panel2,color:C.indigo,border:`1px solid ${C.line}`}}>{result.type}</span></div>
       <p className="text-sm leading-relaxed mb-4" style={{color:C.ink}}>{ONE[result.type]}</p>
-      <div className="space-y-2 mb-4">{DOM_ORDER.map(k=><DomBar key={k} k={k} v={result.scores[k]}/>)}</div>
-      <p className="text-sm leading-relaxed mb-4" style={{color:C.sub}}><b style={{color:C.red}}>조심할 점 · </b>{CARE[result.type]}</p>
+      <div className="space-y-2 mb-5">{["이해","보완","긴장","자율"].map(k=><DomBar key={k} k={k} v={result.scores[k]}/>)}</div>
       <p className="text-sm mb-3" style={{color:C.sub}}>{owner.name}님 지도에 올라갔어요.</p>
-      {guest?(<><Btn onClick={onMakeMine}>🔎 내 케미 지도 만들어보기</Btn><p className="text-center text-xs mt-2" style={{color:C.faint}}>{owner.name}님이 내 지도에도 자동으로 올라가 있어요</p></>):(<Btn onClick={onBack}>지도로 돌아가기</Btn>)}</div>):(
+      <Btn onClick={onBack}>{guest?"나도 내 MBTI 케미 만들기":"지도로 돌아가기"}</Btn></div>):(
     <div className="rounded-3xl p-5" style={{background:C.panel,border:`1px solid ${C.line}`}}>
       <h2 className="text-base font-bold mb-1" style={{color:C.ink}}>🙋 나는 {owner.name}님에게 어떤 사람일까?</h2>
       <p className="text-sm mb-4" style={{color:C.sub}}>내 MBTI만 고르면 케미가 바로 나와요.</p>
@@ -370,7 +354,6 @@ function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
       <Row field="ei" left={["E · 외향","E"]} right={["I · 내향","I"]}/><Row field="sn" left={["N · 직관","N"]} right={["S · 감각","S"]}/>
       <Row field="tf" left={["T · 사고","T"]} right={["F · 감정","F"]}/><Row field="jp" left={["J · 계획","J"]} right={["P · 즉흥","P"]}/>
       <div className="mt-4"><Btn onClick={submit} disabled={!(name.trim()&&full)}>지도에 이름 올리기</Btn></div></div>)}
-    {result&&(<><ExplainBox/><LegendBox/></>)}
     <p className="text-center text-xs mt-5" style={{color:C.faint}}>재미로 보는 MBTI 케미 · 재미로만 즐겨주세요!</p></div>);
 }
 
@@ -384,11 +367,11 @@ function NavBar({active,onGo}){
 }
 
 /* ═══ 개발용 로그 패널 ═══ */
-function LogPanel({events,onClose,onClear,onReset}){
+function LogPanel({events,onClose,onClear}){
   return (<div className="fixed inset-0 z-50 flex items-end" style={{background:"rgba(0,0,0,0.4)"}} onClick={onClose}>
     <div className="w-full overflow-auto rounded-t-3xl p-4" style={{background:C.panel,maxHeight:"70vh"}} onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between mb-3"><span className="text-sm font-bold" style={{color:C.ink}}>세션 로그 · {events.length}건</span>
-        <div className="flex gap-2"><button onClick={onReset} className="text-xs px-2 py-1 rounded" style={{color:"#FBF6EC",background:C.red}}>처음부터(전체 리셋)</button><button onClick={onClear} className="text-xs px-2 py-1 rounded" style={{color:C.red}}>로그만 지우기</button>
+        <div className="flex gap-2"><button onClick={onClear} className="text-xs px-2 py-1 rounded" style={{color:C.red}}>초기화</button>
           <button onClick={onClose} className="text-xs px-2 py-1 rounded" style={{color:C.faint}}>닫기</button></div></div>
       {[...events].reverse().map((e,i)=>(<div key={i} className="text-xs font-mono py-1" style={{color:C.sub,borderBottom:`1px solid ${C.line}`}}>
         <span style={{color:C.indigo}}>{e.event}</span> <span style={{color:C.faint}}>{new Date(e.ts).toLocaleTimeString()}</span>
@@ -404,9 +387,8 @@ export default function App(){
   const [connections,setConnections]=useState([]); const [events,setEvents]=useState([]);
   const [showLog,setShowLog]=useState(false); const [ready,setReady]=useState(false);
   const [mode,setMode]=useState("owner"); const [targetOwner,setTargetOwner]=useState(null);
-  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null); const [helpOpen,setHelpOpen]=useState(false);
-  const [devMode] = useState(()=> (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1");
-  const q=(id)=> "?owner="+id+(devMode?"&debug=1":"");
+  const [toast,setToast]=useState("");
+  const devMode = (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1";
 
   const track=useCallback((event,props={})=>{ amp(event,props); ga(event,props); setEvents(prev=>{ const ev={event,ts:Date.now(),...props}; const next=[...prev,ev].slice(-100); sset(K.log,next); return next; }); },[]);
 
@@ -414,39 +396,25 @@ export default function App(){
     const lg=await sget(K.log); if(lg) setEvents(lg);
     const params=(typeof location!=="undefined")?new URLSearchParams(location.search):new URLSearchParams();
     const ownerParam=params.get("owner"); const refSrc=params.get("src")||null; const refSid=params.get("sid")||null;
-    const myId=await sget(K.myid);
-    track("session_start",{returning:!!myId,src:refSrc,sid:refSid});
-    const restore=async(oid,asOwner)=>{ const m=await apiGet(`/api/map?owner=${oid}`); if(!(m&&m.owner))return false;
-      if(asOwner){ const o={...m.owner,id:oid}; setOwner(o); setName(o.name||""); setConnections(m.connections||[]); sset(K.owner,o); sset(K.conn,m.connections||[]);
-        if(typeof history!=="undefined") history.replaceState(null,"",q(oid));
-        const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
-      else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
-      return true; };
-    // 남의 지도 링크 → 게스트 (초대 링크는 절대 내 지도로 튕기지 않음)
-    if(ownerParam && ownerParam!==myId){ if(await restore(ownerParam,false)) return;
-      setReady(true); track("landing_view",{src:refSrc,sid:refSid}); return; }
-    // 내 지도 복귀 (내 링크로 왔거나 기본 주소지만 내 id 저장됨)
-    const myOid=(ownerParam && ownerParam===myId)?ownerParam:myId;
-    if(myOid){ if(await restore(myOid,true)) return; }
-    // 백엔드 실패 시 로컬 폴백
+    track("session_start",{returning:!!(await sget(K.owner)),src:refSrc,sid:refSid});
+    if(ownerParam){ const map=await apiGet(`/api/map?owner=${ownerParam}`);
+      if(map && map.owner){ setTargetOwner({...map.owner,id:ownerParam}); setConnections(map.connections||[]); setMode("guest"); setReady(true);
+        track("add_view",{owner:ownerParam,src:refSrc,sid:refSid}); setStep("add"); return; } }
     const o=await sget(K.owner), cs=await sget(K.conn);
-    if(o){ setOwner(o); setName(o.name||""); if(cs) setConnections(cs); const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); return; }
-    setReady(true); track("landing_view",{src:refSrc,sid:refSid});
+    if(o){ setOwner(o); setName(o.name||""); } if(cs) setConnections(cs);
+    setReady(true); if(o){ const last=await sget(K.last); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); } else track("landing_view",{src:refSrc,sid:refSid});
   })(); },[]);
 
   const makeOwner=async(mbti,axes,isTested)=>{ const base={name:name.trim()||"나",mbti,axes};
     const res=await apiPost("/api/owner",base); const id=(res&&res.ownerId)||uid(); const o={...base,id};
-    setOwner(o); sset(K.owner,o); sset(K.myid,id); setTested(isTested);
-    if(res && res.ownerId && typeof history!=="undefined") history.replaceState(null,"",q(id));
+    setOwner(o); sset(K.owner,o); setTested(isTested);
+    if(API_BASE && typeof history!=="undefined") history.replaceState(null,"",`?owner=${id}`);
     track("card_view",{mbti,tested:isTested}); setStep("card"); };
   const finishTest=(v)=>{ track("test_complete",{type:tfa(v)}); makeOwner(tfa(v),v,true); };
   const direct=(t)=>{ track("direct_pick",{type:t}); makeOwner(t,t2a(t),false); };
   const goSynergy=()=>{ track("map_view",{n:connections.length}); setStep("map"); };
   const addConn=async(r)=>{ const next=[...connections.filter(c=>c.name!==r.name),r]; setConnections(next); sset(K.conn,next);
-    const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id));
-    if(oid){ const gExisting=await sget(K.myid);
-      const resp=await apiPost("/api/connection",{owner:oid,conn:r,guestOwnerId:gExisting||null,guestSelf:(mode==="guest"?{axes:r.gaxes||null}:null)});
-      if(mode==="guest" && resp && resp.guestOwnerId){ sset(K.myid,resp.guestOwnerId); setGuestId(resp.guestOwnerId); } }
+    const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id)); if(oid) await apiPost("/api/connection",{owner:oid,conn:r});
     track("add_submit",{mbti:r.mbti,chemi:r.chemi}); };
   const delConn=(nm)=>{ const next=connections.filter(c=>c.name!==nm); setConnections(next); sset(K.conn,next); track("connection_delete",{}); };
   const share=async(surface)=>{ const oid=owner&&owner.id; const {url,sid}=buildShareUrl(oid,"link");
@@ -460,9 +428,6 @@ export default function App(){
       else if(typeof window!=="undefined"&&window.prompt){ window.prompt("프롬프트를 복사하세요", text); } }catch(e){}
     setToast("프롬프트를 복사했어요! ChatGPT·Claude에 붙여넣어 보세요"); setTimeout(()=>setToast(""),2600); };
   const clearAll=()=>{ setEvents([]); sset(K.log,[]); };
-  const resetAll=()=>{ try{ Object.values(K).forEach(k=>{ if(hasLS) window.localStorage.removeItem(k); }); }catch{}
-    setEvents([]); setOwner(null); setTargetOwner(null); setConnections([]); setGuestId(null); setTested(false); setMode("owner"); setName(""); setD({ei:"",sn:"",tf:"",jp:""}); setShowLog(false);
-    if(typeof history!=="undefined") history.replaceState(null,"",location.pathname+"?debug=1"); _setStep("landing"); track("debug_reset",{}); };
 
   if(!ready) return <div className="min-h-screen" style={{background:C.bg}}/>;
   return (<div className="min-h-screen w-full" style={{background:C.bg,color:C.ink}}>
@@ -472,26 +437,9 @@ export default function App(){
     {step==="card"&&owner&&<Card name={owner.name} mbti={owner.mbti} axes={owner.axes} tested={tested} onShare={()=>share("card")} onPrompt={()=>copyPrompt("card")} onSynergy={goSynergy} onTest={()=>{track("nudge_test_click");setStep("test");}}/>}
     {step==="map"&&owner&&<MapScreen owner={owner} connections={connections} onSelectLog={p=>track("connection_open",{mbti:p.mbti,chemi:p.chemi})} onDelete={delConn} onShare={()=>share("map")} onPrompt={()=>copyPrompt("map")} onExplain={()=>track("explain_open")} onAdd={()=>{track("add_view");setStep("add");}}/>}
     {step==="add"&&(mode==="guest"?targetOwner:owner)&&<AddScreen owner={mode==="guest"?targetOwner:owner} guest={mode==="guest"} onSubmit={addConn}
-      onMakeMine={async()=>{ track("guest_make_own",{}); const gid=guestId||await sget(K.myid);
-        if(gid){ const mine=await apiGet(`/api/map?owner=${gid}`);
-          if(mine&&mine.owner){ const o={...mine.owner,id:gid}; setOwner(o); setName(o.name||""); setConnections(mine.connections||[]); sset(K.owner,o); sset(K.conn,mine.connections||[]);
-            if(typeof history!=="undefined") history.replaceState(null,"",q(gid));
-            setMode("owner"); setTargetOwner(null);
-            if(o.axes){ setTested(false); setStep("card"); } else { setStep("map"); } return; } }
-        setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
       onBack={()=> mode==="guest" ? (track("guest_make_own",{}),setMode("owner"),setTargetOwner(null),setConnections([]),setOwner(null),setStep("landing")) : setStep("map")}/>}
     {toast&&(<div className="fixed left-1/2 bottom-16 -translate-x-1/2 px-4 py-2 rounded-full text-sm z-50" style={{background:C.ink,color:C.bg}}>{toast}</div>)}
-    <button onClick={()=>{setHelpOpen(true);track("help_open",{});}} aria-label="문의하기"
-      className="fixed right-3 top-3 z-40 w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold"
-      style={{background:C.panel,color:C.indigo,border:`1px solid ${C.line}`}}>?</button>
-    {helpOpen&&(<div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{background:"rgba(44,40,35,0.5)"}} onClick={()=>setHelpOpen(false)}>
-      <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{background:C.panel,border:`1px solid ${C.line}`}} onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:`1px solid ${C.line}`}}>
-          <h3 className="text-base font-bold" style={{color:C.ink}}>문의 · 의견 보내기</h3>
-          <button onClick={()=>setHelpOpen(false)} className="text-sm" style={{color:C.faint}}>✕</button></div>
-        <iframe title="문의 폼" src={FORM_URL} className="w-full" style={{height:"70vh",border:0,background:"#fff"}} loading="lazy">로드 중…</iframe>
-      </div></div>)}
     {devMode&&<button onClick={()=>setShowLog(true)} className="fixed left-3 bottom-3 z-40 text-xs px-2 py-1 rounded-full" style={{background:C.navy,color:"#FBF6EC",opacity:0.8}}>🐞 {events.length}</button>}
-    {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll} onReset={resetAll}/>}
+    {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll}/>}
   </div>);
 }

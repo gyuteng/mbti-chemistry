@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 /* ═══ 팔레트 · 이미지 ═══ */
-const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV6ORfxUjTkCLUrJdBUnYYN88XQDxacT8C6tjG_wWXILQSRQ/viewform?embedded=true";
 const C = { bg:"#EFE7D6", panel:"#FBF6EC", panel2:"#F4ECDB", soft:"#EDE3CF", line:"#E1D6BF",
   ink:"#2C2823", sub:"#6E6553", faint:"#9A8F79", navy:"#1E2547", gold:"#B58412", blue:"#2F6DA6", red:"#BB463B", indigo:"#3E4A7A", green:"#5B7A4B",
   mapBg:"#141A33", mapRing:"#2A3358", star:"#3A4570" };
@@ -404,7 +403,7 @@ export default function App(){
   const [connections,setConnections]=useState([]); const [events,setEvents]=useState([]);
   const [showLog,setShowLog]=useState(false); const [ready,setReady]=useState(false);
   const [mode,setMode]=useState("owner"); const [targetOwner,setTargetOwner]=useState(null);
-  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null); const [helpOpen,setHelpOpen]=useState(false);
+  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null);
   const [devMode] = useState(()=> (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1");
   const q=(id)=> "?owner="+id+(devMode?"&debug=1":"");
 
@@ -481,16 +480,6 @@ export default function App(){
         setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
       onBack={()=> mode==="guest" ? (track("guest_make_own",{}),setMode("owner"),setTargetOwner(null),setConnections([]),setOwner(null),setStep("landing")) : setStep("map")}/>}
     {toast&&(<div className="fixed left-1/2 bottom-16 -translate-x-1/2 px-4 py-2 rounded-full text-sm z-50" style={{background:C.ink,color:C.bg}}>{toast}</div>)}
-    <button onClick={()=>{setHelpOpen(true);track("help_open",{});}} aria-label="문의하기"
-      className="fixed right-3 top-3 z-40 w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold"
-      style={{background:C.panel,color:C.indigo,border:`1px solid ${C.line}`}}>?</button>
-    {helpOpen&&(<div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{background:"rgba(44,40,35,0.5)"}} onClick={()=>setHelpOpen(false)}>
-      <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{background:C.panel,border:`1px solid ${C.line}`}} onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:`1px solid ${C.line}`}}>
-          <h3 className="text-base font-bold" style={{color:C.ink}}>문의 · 의견 보내기</h3>
-          <button onClick={()=>setHelpOpen(false)} className="text-sm" style={{color:C.faint}}>✕</button></div>
-        <iframe title="문의 폼" src={FORM_URL} className="w-full" style={{height:"70vh",border:0,background:"#fff"}} loading="lazy">로드 중…</iframe>
-      </div></div>)}
     {devMode&&<button onClick={()=>setShowLog(true)} className="fixed left-3 bottom-3 z-40 text-xs px-2 py-1 rounded-full" style={{background:C.navy,color:"#FBF6EC",opacity:0.8}}>🐞 {events.length}</button>}
     {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll} onReset={resetAll}/>}
   </div>);

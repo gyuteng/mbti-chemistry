@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 /* ═══ 팔레트 · 이미지 ═══ */
-const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV6ORfxUjTkCLUrJdBUnYYN88XQDxacT8C6tjG_wWXILQSRQ/viewform?embedded=true";
 const C = { bg:"#EFE7D6", panel:"#FBF6EC", panel2:"#F4ECDB", soft:"#EDE3CF", line:"#E1D6BF",
   ink:"#2C2823", sub:"#6E6553", faint:"#9A8F79", navy:"#1E2547", gold:"#B58412", blue:"#2F6DA6", red:"#BB463B", indigo:"#3E4A7A", green:"#5B7A4B",
   mapBg:"#141A33", mapRing:"#2A3358", star:"#3A4570" };
@@ -117,7 +116,6 @@ const CARE = { 보완형:"방식이 서로 달라 처음엔 ‘왜 저러지’ 
   긴장형:"판단 기준이 정반대라, 급할 때 부딪히면 감정 소모가 커요. 함께 정하기 전에 ‘이번엔 뭘 우선할지’를 먼저 맞춰두면 충돌이 자극으로 바뀌어요.",
   독립형:"성향이 달라 깊은 속마음까진 잘 안 닿을 수 있어요. 서로를 바꾸려 들면 지치기 쉬우니, 각자의 방식을 인정하는 게 이 관계를 오래 편하게 만들어요." };
 const LEGEND = { 이해형:"같은 방식으로 이해하는 관계 — 나를 가장 잘 이해하는 사람.",보완형:"내가 못 보는 걸 보여주는 관계 — 나에게 없는 걸 가진 사람.",긴장형:"서로를 강하게 자극하는 관계 — 나를 가장 많이 자극하는 사람.",독립형:"서로 다른 세계를 존중하는 관계 — 각자의 세계를 지키는 사람." };
-const DOM_ORDER=["보완","이해","긴장","자율"]; const LEGEND_ORDER=["보완형","이해형","긴장형","독립형"];
 const DOMAIN_EXPLAIN = { 이해:"서로의 사고방식을 얼마나 쉽게 알아듣는가예요. 높을수록 설명 안 해도 통하고, 낮으면 서로 ‘왜 저렇게 생각하지?’ 싶어져요.",
   보완:"서로의 부족한 부분을 얼마나 채워주는가예요. 높을수록 내가 약한 영역을 상대가 메워줘요. 결이 다를 때 올라가요.",
   긴장:"핵심 가치나 방식이 얼마나 부딪히는가예요. 높을수록 자주 충돌하지만 그만큼 서로를 자극해요. 판단 기준이 정반대일 때 올라가요.",
@@ -290,16 +288,11 @@ function Counts({nodes}){ const by={보완형:0,이해형:0,긴장형:0,독립�
 function ExplainBox({onOpen}){ const [open,setOpen]=useState(false);
   return (<div className="rounded-2xl mt-3" style={{background:C.panel,border:`1px solid ${C.line}`}}>
     <button onClick={()=>setOpen(v=>{ if(!v&&onOpen)onOpen(); return !v; })} className="w-full flex items-center justify-between p-4 text-left">
-      <span className="text-sm font-bold" style={{color:C.ink}}>보완·이해·긴장·자율이 뭐예요? <span style={{color:C.indigo}}>제대로 알아보기</span></span>
+      <span className="text-sm font-bold" style={{color:C.ink}}>이해·보완·긴장·자율이 뭐예요? <span style={{color:C.indigo}}>제대로 알아보기</span></span>
       <span className="text-sm" style={{color:C.faint}}>{open?"▲":"▼"}</span></button>
-    {open&&(<div className="px-4 pb-4">{DOM_ORDER.map(k=>(
+    {open&&(<div className="px-4 pb-4">{["이해","보완","긴장","자율"].map(k=>(
       <p key={k} className="text-sm leading-relaxed mb-2" style={{color:C.sub}}><b style={{color:domColor[k]}}>{k}</b> · {DOMAIN_EXPLAIN[k]}</p>))}
       <p className="text-xs leading-relaxed mt-1" style={{color:C.faint}}>케미 점수는 이해·보완을 크게, 긴장을 비용으로 반영해 계산돼요.</p></div>)}</div>);
-}
-function LegendBox(){
-  return (<div className="rounded-2xl p-4 mt-4" style={{background:C.panel,border:`1px solid ${C.line}`}}>
-    <p className="text-sm font-bold mb-2" style={{color:C.ink}}>관계 유형은 무슨 뜻인가요?</p>
-    {LEGEND_ORDER.map(t=><p key={t} className="text-sm leading-relaxed mb-1.5" style={{color:C.sub}}><b style={{color:TYPE_COLOR[t]}}>{TYPE_ICON[t]} {t}</b> · {LEGEND[t]}</p>)}</div>);
 }
 function ListItem({p,rank,open,onToggle,onDelete}){
   return (<div className="rounded-2xl p-4" style={{background:C.panel,border:`1px solid ${open?TYPE_COLOR[p.type]:C.line}`}}>
@@ -311,7 +304,7 @@ function ListItem({p,rank,open,onToggle,onDelete}){
       <span className="font-serif text-2xl" style={{color:C.gold}}>{p.chemi}</span></button>
     <p className="text-sm leading-relaxed mt-2" style={{color:C.ink}}>{ONE[p.type]}</p>
     {open&&(<div className="mt-3 pt-3" style={{borderTop:`1px solid ${C.line}`}}>
-      <div className="flex gap-1.5 mb-3">{DOM_ORDER.map(k=>(
+      <div className="flex gap-1.5 mb-3">{["이해","보완","긴장","자율"].map(k=>(
         <div key={k} className="flex-1 text-center rounded-lg py-1.5" style={{background:C.panel2}}><div className="text-xs" style={{color:C.faint}}>{k}</div>
           <div className="font-mono text-sm font-bold" style={{color:C.ink}}>{p.scores[k]}</div></div>))}</div>
       <p className="text-sm leading-relaxed mb-3" style={{color:C.sub}}><b style={{color:C.red}}>조심할 점 · </b>{CARE[p.type]}</p>
@@ -328,7 +321,9 @@ function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExpla
     {nodes.length===0 ? (<div className="rounded-2xl p-6 text-center" style={{background:C.panel,border:`1px dashed ${C.line}`}}><p className="text-sm" style={{color:C.sub}}>아직 아무도 없어요. 친구에게 공유하면 여기에 케미가 쌓여요.</p></div>) : (
     <div className="space-y-2">{nodes.map((p,i)=>(<ListItem key={p.name} p={p} rank={i} open={selected===p.name}
       onToggle={()=>{const ns=selected===p.name?null:p.name; setSelected(ns); if(ns) onSelectLog(p);}} onDelete={()=>onDelete(p.name)}/>))}</div>)}
-    <LegendBox/>
+    <div className="rounded-2xl p-4 mt-4" style={{background:C.panel,border:`1px solid ${C.line}`}}>
+      <p className="text-sm font-bold mb-2" style={{color:C.ink}}>관계 유형은 무슨 뜻인가요?</p>
+      {Object.keys(LEGEND).map(t=><p key={t} className="text-sm leading-relaxed mb-1.5" style={{color:C.sub}}><b style={{color:TYPE_COLOR[t]}}>{TYPE_ICON[t]} {t}</b> · {LEGEND[t]}</p>)}</div>
     <div className="rounded-2xl p-4 mt-4 text-center" style={{background:C.panel2,border:`1px dashed ${C.gold}`}}>
       <p className="text-sm font-semibold mb-1" style={{color:C.ink}}>🧡 친구에게 공유해보세요</p>
       <p className="text-xs mb-3" style={{color:C.sub}}>친구가 MBTI만 넣으면 {owner.name}님과 어떤 케미인지 지도에 나타나요.<br/>지금 {nodes.length}명이 올라왔어요.</p>
@@ -358,8 +353,7 @@ function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
       <div className="flex items-end gap-2 mb-1"><span className="font-serif leading-none" style={{fontSize:56,color:C.gold}}>{result.chemi}</span>
         <span className="mb-2 text-sm px-2 py-0.5 rounded-full" style={{background:C.panel2,color:C.indigo,border:`1px solid ${C.line}`}}>{result.type}</span></div>
       <p className="text-sm leading-relaxed mb-4" style={{color:C.ink}}>{ONE[result.type]}</p>
-      <div className="space-y-2 mb-4">{DOM_ORDER.map(k=><DomBar key={k} k={k} v={result.scores[k]}/>)}</div>
-      <p className="text-sm leading-relaxed mb-4" style={{color:C.sub}}><b style={{color:C.red}}>조심할 점 · </b>{CARE[result.type]}</p>
+      <div className="space-y-2 mb-5">{["이해","보완","긴장","자율"].map(k=><DomBar key={k} k={k} v={result.scores[k]}/>)}</div>
       <p className="text-sm mb-3" style={{color:C.sub}}>{owner.name}님 지도에 올라갔어요.</p>
       {guest?(<><Btn onClick={onMakeMine}>🔎 내 케미 지도 만들어보기</Btn><p className="text-center text-xs mt-2" style={{color:C.faint}}>{owner.name}님이 내 지도에도 자동으로 올라가 있어요</p></>):(<Btn onClick={onBack}>지도로 돌아가기</Btn>)}</div>):(
     <div className="rounded-3xl p-5" style={{background:C.panel,border:`1px solid ${C.line}`}}>
@@ -370,7 +364,6 @@ function AddScreen({owner,onSubmit,onBack,guest,onMakeMine}){
       <Row field="ei" left={["E · 외향","E"]} right={["I · 내향","I"]}/><Row field="sn" left={["N · 직관","N"]} right={["S · 감각","S"]}/>
       <Row field="tf" left={["T · 사고","T"]} right={["F · 감정","F"]}/><Row field="jp" left={["J · 계획","J"]} right={["P · 즉흥","P"]}/>
       <div className="mt-4"><Btn onClick={submit} disabled={!(name.trim()&&full)}>지도에 이름 올리기</Btn></div></div>)}
-    {result&&(<><ExplainBox/><LegendBox/></>)}
     <p className="text-center text-xs mt-5" style={{color:C.faint}}>재미로 보는 MBTI 케미 · 재미로만 즐겨주세요!</p></div>);
 }
 
@@ -404,7 +397,7 @@ export default function App(){
   const [connections,setConnections]=useState([]); const [events,setEvents]=useState([]);
   const [showLog,setShowLog]=useState(false); const [ready,setReady]=useState(false);
   const [mode,setMode]=useState("owner"); const [targetOwner,setTargetOwner]=useState(null);
-  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null); const [helpOpen,setHelpOpen]=useState(false);
+  const [toast,setToast]=useState(""); const [guestId,setGuestId]=useState(null);
   const [devMode] = useState(()=> (typeof location!=="undefined") && new URLSearchParams(location.search).get("debug")==="1");
   const q=(id)=> "?owner="+id+(devMode?"&debug=1":"");
 
@@ -481,16 +474,6 @@ export default function App(){
         setMode("owner"); setTargetOwner(null); setConnections([]); setOwner(null); setStep("landing"); }}
       onBack={()=> mode==="guest" ? (track("guest_make_own",{}),setMode("owner"),setTargetOwner(null),setConnections([]),setOwner(null),setStep("landing")) : setStep("map")}/>}
     {toast&&(<div className="fixed left-1/2 bottom-16 -translate-x-1/2 px-4 py-2 rounded-full text-sm z-50" style={{background:C.ink,color:C.bg}}>{toast}</div>)}
-    <button onClick={()=>{setHelpOpen(true);track("help_open",{});}} aria-label="문의하기"
-      className="fixed right-3 top-3 z-40 w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold"
-      style={{background:C.panel,color:C.indigo,border:`1px solid ${C.line}`}}>?</button>
-    {helpOpen&&(<div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{background:"rgba(44,40,35,0.5)"}} onClick={()=>setHelpOpen(false)}>
-      <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{background:C.panel,border:`1px solid ${C.line}`}} onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:`1px solid ${C.line}`}}>
-          <h3 className="text-base font-bold" style={{color:C.ink}}>문의 · 의견 보내기</h3>
-          <button onClick={()=>setHelpOpen(false)} className="text-sm" style={{color:C.faint}}>✕</button></div>
-        <iframe title="문의 폼" src={FORM_URL} className="w-full" style={{height:"70vh",border:0,background:"#fff"}} loading="lazy">로드 중…</iframe>
-      </div></div>)}
     {devMode&&<button onClick={()=>setShowLog(true)} className="fixed left-3 bottom-3 z-40 text-xs px-2 py-1 rounded-full" style={{background:C.navy,color:"#FBF6EC",opacity:0.8}}>🐞 {events.length}</button>}
     {showLog&&<LogPanel events={events} onClose={()=>setShowLog(false)} onClear={clearAll} onReset={resetAll}/>}
   </div>);
