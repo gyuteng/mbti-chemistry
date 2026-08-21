@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*?owner=
+Disallow: /*?src=
+Disallow: /*&owner=
+Disallow: /*&src=
+
+Sitemap: https://mbti-chemistry-beta.vercel.app/sitemap.xml

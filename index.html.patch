@@ -1,0 +1,105 @@
+diff --git a/index.html b/index.html
+index 1d0a6b8..b0984f0 100644
+--- a/index.html
++++ b/index.html
+@@ -3,30 +3,92 @@
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+-    <title>MBTI 케미</title>
+-    <meta name="description" content="내 성향을 알아보고, 사람들과의 MBTI 케미를 지도로 모아요. 재미로 보는 MBTI 케미!" />
++    <title>MBTI 케미 · 인지기능 기반 성향·궁합 진단 지도</title>
++    <meta name="description" content="MBTI 16유형의 인지기능으로 나의 성향과 사람들과의 케미(궁합)를 계산해 지도로 모아요. INTJ·ENFP 등 유형별 관계 케미를 재미로 확인해 보세요." />
++    <link rel="canonical" href="https://mbti-chemistry-beta.vercel.app/" />
++    <meta name="robots" content="index, follow, max-image-preview:large" />
+ 
+     <!-- Open Graph (카카오톡·페북·디스코드 미리보기) -->
+     <meta property="og:type" content="website" />
+-    <meta property="og:title" content="MBTI 케미" />
+-    <meta property="og:description" content="MBTI만 넣으면 나와 케미가 지도에 나타나요!" />
+-    <meta property="og:image" content="/og.png" />
++    <meta property="og:site_name" content="MBTI 케미" />
++    <meta property="og:locale" content="ko_KR" />
++    <meta property="og:url" content="https://mbti-chemistry-beta.vercel.app/" />
++    <meta property="og:title" content="MBTI 케미 · 인지기능 기반 성향·궁합 진단" />
++    <meta property="og:description" content="MBTI만 넣으면 나와의 케미가 지도에 나타나요! 인지기능으로 보는 유형별 궁합." />
++    <meta property="og:image" content="https://mbti-chemistry-beta.vercel.app/og.png" />
+     <meta property="og:image:width" content="1200" />
+     <meta property="og:image:height" content="630" />
+ 
+     <!-- Twitter/X -->
+     <meta name="twitter:card" content="summary_large_image" />
+-    <meta name="twitter:title" content="MBTI 케미" />
+-    <meta name="twitter:description" content="MBTI만 넣으면 나와 케미가 지도에 나타나요!" />
+-    <meta name="twitter:image" content="/og.png" />
++    <meta name="twitter:title" content="MBTI 케미 · 인지기능 기반 성향·궁합 진단" />
++    <meta name="twitter:description" content="MBTI만 넣으면 나와의 케미가 지도에 나타나요! 인지기능으로 보는 유형별 궁합." />
++    <meta name="twitter:image" content="https://mbti-chemistry-beta.vercel.app/og.png" />
+ 
+     <link rel="icon" type="image/png" href="/favicon.png" />
+     <meta name="theme-color" content="#EFE7D6" />
++
++    <!-- 구조화 데이터: 검색엔진·AI가 이 사이트가 무엇인지 이해하고 인용하도록 -->
++    <script type="application/ld+json">
++    {
++      "@context": "https://schema.org",
++      "@graph": [
++        {
++          "@type": "WebApplication",
++          "name": "MBTI 케미",
++          "url": "https://mbti-chemistry-beta.vercel.app/",
++          "description": "MBTI 16유형의 인지기능을 기반으로 개인의 성향과 사람 간 케미(궁합)를 계산해 관계 지도로 시각화하는 웹앱.",
++          "applicationCategory": "LifestyleApplication",
++          "operatingSystem": "Web",
++          "inLanguage": "ko",
++          "isAccessibleForFree": true,
++          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
++        },
++        {
++          "@type": "FAQPage",
++          "mainEntity": [
++            {
++              "@type": "Question",
++              "name": "MBTI 케미는 어떻게 계산되나요?",
++              "acceptedAnswer": {
++                "@type": "Answer",
++                "text": "두 사람의 MBTI 인지기능 스택을 비교해 이해·보완·긴장·자율 네 축으로 관계를 점수화합니다. 이해와 보완을 크게, 긴장을 비용으로 반영해 종합 케미 점수를 냅니다."
++              }
++            },
++            {
++              "@type": "Question",
++              "name": "보완·이해·긴장·자율은 무슨 뜻인가요?",
++              "acceptedAnswer": {
++                "@type": "Answer",
++                "text": "보완형은 내게 없는 걸 채워주는 관계, 이해형은 같은 방식으로 이해하는 관계, 긴장형은 서로를 강하게 자극하는 관계, 독립형은 서로 다른 세계를 존중하는 관계입니다."
++              }
++            },
++            {
++              "@type": "Question",
++              "name": "MBTI 케미 결과는 정확한가요?",
++              "acceptedAnswer": {
++                "@type": "Answer",
++                "text": "재미로 보는 오락용 진단입니다. 인지기능 이론을 바탕으로 하지만 과학적 성격검사를 대체하지 않으며, 관계를 가볍게 이해하는 참고용으로 즐겨 주세요."
++              }
++            }
++          ]
++        }
++      ]
++    }
++    </script>
++
+     <script src="https://cdn.tailwindcss.com"></script>
+     <style> body { margin: 0; background: #EFE7D6; } </style>
+   </head>
+   <body>
+     <div id="root"></div>
++    <noscript>
++      <div style="max-width:640px;margin:40px auto;padding:0 20px;font-family:system-ui,sans-serif;color:#2C2823;line-height:1.7">
++        <h1>MBTI 케미 · 인지기능 기반 성향·궁합 진단</h1>
++        <p>MBTI 케미는 16유형의 인지기능을 바탕으로 나의 성향과 사람들과의 케미(궁합)를 계산해 관계 지도로 보여주는 무료 웹앱입니다. INTJ, ENFP, ISTP 등 유형별로 이해형·보완형·긴장형·독립형 관계를 확인할 수 있어요.</p>
++        <p>이 페이지는 자바스크립트가 필요합니다. 브라우저에서 자바스크립트를 켜면 나의 케미 지도를 만들고 친구와 공유할 수 있어요. 재미로 보는 MBTI 케미 · 재미로만 즐겨 주세요!</p>
++      </div>
++    </noscript>
+     <script type="module" src="/src/main.jsx"></script>
+   </body>
+ </html>
