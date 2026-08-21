@@ -143,7 +143,7 @@ function scoreVector(res){ const raw={EI:0,NS:0,TF:0,JP:0},cnt={EI:0,NS:0,TF:0,J
   const a={}; Object.keys(raw).forEach(ax=>a[ax]=raw[ax]/(cnt[ax]*2)); return a; }
 
 /* ═══ 로깅 · 영속 ═══ */
-const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last", myid:"psymatch:myid" };
+const K = { owner:"psymatch:owner", conn:"psymatch:conn", log:"psymatch:log", last:"psymatch:last", myid:"psymatch:myid", me:"psymatch:me" };
 const hasLS = (typeof window!=="undefined") && (()=>{ try{ window.localStorage.setItem("__t","1"); window.localStorage.removeItem("__t"); return true; }catch{ return false; } })();
 async function sget(k){
   try{ if(hasLS){ const v=window.localStorage.getItem(k); return v==null?null:JSON.parse(v); } }catch{}
@@ -333,6 +333,8 @@ function ListItem({p,rank,open,onToggle,onDelete}){
 }
 function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExplain,onPrompt}){
   const nodes=layout(owner.axes,connections); const [selected,setSelected]=useState(null);
+  const [showAll,setShowAll]=useState(false); const LIST_LIMIT=6;
+  const visibleNodes=showAll?nodes:nodes.slice(0,LIST_LIMIT); const hiddenCount=nodes.length-visibleNodes.length;
   return (<div className="mx-auto max-w-md px-4 py-6">
     <style>{`.orbit-node{animation:floaty 6s ease-in-out infinite}.orbit-node:nth-child(2n){animation-duration:7.5s}.orbit-node:nth-child(3n){animation-duration:5.5s}@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-0.6px)}}`}</style>
     <OrbitMap nodes={nodes} selected={selected} me={owner.name} onSelect={n=>setSelected(selected===n?null:n)}/>
@@ -340,8 +342,9 @@ function MapScreen({owner,connections,onSelectLog,onDelete,onShare,onAdd,onExpla
     <div className="flex items-center justify-between mt-4 mb-2"><h2 className="text-base font-bold" style={{color:C.ink}}>MBTI 케미 · 잘 맞는 순</h2>
       <span className="text-xs" style={{color:C.faint}}>이름을 누르면 조심할 점도 나와요</span></div>
     {nodes.length===0 ? (<div className="rounded-2xl p-6 text-center" style={{background:C.panel,border:`1px dashed ${C.line}`}}><p className="text-sm" style={{color:C.sub}}>아직 아무도 없어요. 친구에게 공유하면 여기에 케미가 쌓여요.</p></div>) : (
-    <div className="space-y-2">{nodes.map((p,i)=>(<ListItem key={p.name} p={p} rank={i} open={selected===p.name}
-      onToggle={()=>{const ns=selected===p.name?null:p.name; setSelected(ns); if(ns) onSelectLog(p);}} onDelete={()=>onDelete(p.name)}/>))}</div>)}
+    <div className="space-y-2">{visibleNodes.map((p,i)=>(<ListItem key={p.name} p={p} rank={i} open={selected===p.name}
+      onToggle={()=>{const ns=selected===p.name?null:p.name; setSelected(ns); if(ns) onSelectLog(p);}} onDelete={()=>onDelete(p.name)}/>))}
+      {nodes.length>LIST_LIMIT&&(<button onClick={()=>setShowAll(v=>!v)} className="w-full rounded-2xl py-3 text-sm font-bold" style={{background:C.panel2,color:C.indigo,border:`1px solid ${C.line}`}}>{showAll?"접기":`더 보기 (${hiddenCount}명 더)`}</button>)}</div>)}
     <LegendBox/>
     <div className="rounded-2xl p-4 mt-4 text-center" style={{background:C.panel2,border:`1px dashed ${C.gold}`}}>
       <p className="text-sm font-semibold mb-1" style={{color:C.ink}}>🧡 친구에게 공유해보세요</p>
@@ -434,10 +437,22 @@ export default function App(){
       if(asOwner){ const o={...m.owner,id:oid}; setOwner(o); setName(o.name||""); setConnections(m.connections||[]); sset(K.owner,o); sset(K.conn,m.connections||[]);
         if(typeof history!=="undefined") history.replaceState(null,"",q(oid));
         const last=await sget(K.last); setReady(true); _setStep(last==="card"?"card":"map"); track((last==="card"?"card_view":"map_view"),{returning:true}); }
-      else { setTargetOwner({...m.owner,id:oid}); setConnections(m.connections||[]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
+      else { setTargetOwner({...m.owner,id:oid}); setConnections([]); setMode("guest"); setReady(true); track("add_view",{owner:oid,src:refSrc,sid:refSid}); setStep("add"); }
       return true; };
+    // 이미 프로필을 가진 게스트가 이 owner 지도에 아직 없으면 자동 등록 (재입력 방지용)
+    const ensureJoined=async(oid,me)=>{ if(!(me&&me.axes))return;
+      try{ const om=await apiGet(`/api/map?owner=${oid}`); if(!(om&&om.owner))return;
+        const already=(om.connections||[]).some(c=>c.oid===myId||c.name===me.name); if(already)return;
+        const c=chemi(om.owner.axes, me.axes);
+        const conn={name:me.name,mbti:me.mbti,chemi:c.chemi,type:c.type,scores:c.scores};
+        await apiPost("/api/connection",{owner:oid,conn,guestOwnerId:myId||null,guestSelf:{axes:me.axes}});
+      }catch(e){} };
     // 남의 지도 링크 → 게스트 (초대 링크는 절대 내 지도로 튕기지 않음)
-    if(ownerParam && ownerParam!==myId){ if(await restore(ownerParam,false)) return;
+    if(ownerParam && ownerParam!==myId){
+      const me=await sget(K.me);
+      // 이미 참여 이력(프로필+내 id)이 있으면: 이 owner에 자동 합류 후 '내 지도'로 바로 이동
+      if(myId && me && me.axes){ await ensureJoined(ownerParam, me); if(await restore(myId,true)) return; }
+      if(await restore(ownerParam,false)) return;
       setReady(true); track("landing_view",{src:refSrc,sid:refSid}); return; }
     // 내 지도 복귀 (내 링크로 왔거나 기본 주소지만 내 id 저장됨)
     const myOid=(ownerParam && ownerParam===myId)?ownerParam:myId;
@@ -456,11 +471,13 @@ export default function App(){
   const finishTest=(v)=>{ track("test_complete",{type:tfa(v)}); makeOwner(tfa(v),v,true); };
   const direct=(t)=>{ track("direct_pick",{type:t}); makeOwner(t,t2a(t),false); };
   const goSynergy=()=>{ track("map_view",{n:connections.length}); setStep("map"); };
-  const addConn=async(r)=>{ const next=[...connections.filter(c=>c.name!==r.name),r]; setConnections(next); sset(K.conn,next);
+  const addConn=async(r)=>{
+    // 내 지도에 친구를 추가하는 경우에만 내 커넥션 키를 갱신 (게스트 참여는 남의 지도라 격리)
+    if(mode!=="guest"){ const next=[...connections.filter(c=>c.name!==r.name),r]; setConnections(next); sset(K.conn,next); }
     const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id));
     if(oid){ const gExisting=await sget(K.myid);
       const resp=await apiPost("/api/connection",{owner:oid,conn:r,guestOwnerId:gExisting||null,guestSelf:(mode==="guest"?{axes:r.gaxes||null}:null)});
-      if(mode==="guest" && resp && resp.guestOwnerId){ sset(K.myid,resp.guestOwnerId); setGuestId(resp.guestOwnerId); } }
+      if(mode==="guest" && resp && resp.guestOwnerId){ sset(K.myid,resp.guestOwnerId); setGuestId(resp.guestOwnerId); sset(K.me,{name:r.name,mbti:r.mbti,axes:r.gaxes||null}); } }
     track("add_submit",{mbti:r.mbti,chemi:r.chemi}); };
   const delConn=async(nm)=>{ const next=connections.filter(c=>c.name!==nm); setConnections(next); sset(K.conn,next); track("connection_delete",{});
     const oid=(mode==="guest"?(targetOwner&&targetOwner.id):(owner&&owner.id)); if(oid) await apiPost("/api/delete",{owner:oid,name:nm}); };

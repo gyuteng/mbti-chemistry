@@ -6,7 +6,11 @@ import { shortId } from "./_id.js";
 async function addTo(ownerId, entry) {
   const key = `conn:${ownerId}`;
   const list = (await redis.get(key)) || [];
-  const next = [...list.filter((c) => c.oid !== entry.oid && c.name !== entry.name), entry].slice(0, 500);
+  // oid가 있으면 oid로만 식별(동명이인 덮어쓰기 방지), oid가 없을 때만 name으로 식별
+  const dedup = list.filter((c) =>
+    entry.oid ? c.oid !== entry.oid : (c.oid ? true : c.name !== entry.name)
+  );
+  const next = [...dedup, entry].slice(0, 500);
   await redis.set(key, next);
   return next;
 }
